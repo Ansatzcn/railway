@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Railway</title>
+    <title>Rail</title>
     <style>
         * {
             box-sizing: border-box;
@@ -766,7 +766,7 @@
             <div class="toolbar-group">
                 <button type="button" class="btn btn-sync" id="syncBtn">同步</button>
                 <button type="button" class="btn" id="configBtn">配置</button>
-                <button type="button" class="btn" id="manageStationsBtn">编辑</button>
+                <button type="button" class="btn" id="manageStationsBtn">管理车站</button>
                 <button type="button" class="btn" id="exportBtn">导出</button>
                 <button type="button" class="btn" id="importBtn">导入</button>
                 <input type="file" id="fileInput" accept=".json,application/json" hidden>
@@ -1104,15 +1104,17 @@
                 numeric: true
             });
 
-            const trainCollator = new Intl.Collator('zh-CN', {
+            const trainCollator = new Intl.Collator('zh-CN-u-co-pinyin', {
                 sensitivity: 'base',
-                numeric: true
+                numeric: true,
+                ignorePunctuation: false
             });
 
             function cleanText(value) {
                 return String(value ?? '').normalize('NFKC').trim();
             }
 
+            // 去重时保留首次输入顺序；车次条目中的车站顺序不得被自动重排。
             function uniqueStations(values) {
                 const map = new Map();
 
@@ -1123,7 +1125,12 @@
                     if (!map.has(key)) map.set(key, station);
                 }
 
-                return Array.from(map.values()).sort((a, b) => stationCollator.compare(a, b));
+                return Array.from(map.values());
+            }
+
+            // 仅历史车站下拉菜单和管理列表按拼音排序。
+            function sortStationOptions(values) {
+                return uniqueStations(values).sort((a, b) => stationCollator.compare(a, b));
             }
 
             function trainKey(value) {
@@ -1179,7 +1186,7 @@
                 }
 
                 const entries = Array.from(entryMap.values());
-                const stations = uniqueStations(
+                const stations = sortStationOptions(
                     hasExplicitStationList
                         ? sourceStations
                         : [...sourceStations, ...entries.flatMap(item => item.stations)]
@@ -1189,7 +1196,10 @@
             }
 
             function sortEntries(entries = state.entries) {
-                entries.sort((a, b) => trainCollator.compare(a.train, b.train));
+                // 按车次的字母/数字进行自然升序，例如 G2 排在 G10 前。
+                entries.sort((a, b) => trainCollator.compare(cleanText(a.train), cleanText(b.train)));
+
+                // 车站只去重，不排序，严格保留用户输入或选择的先后顺序。
                 for (const entry of entries) {
                     entry.stations = uniqueStations(entry.stations);
                 }
@@ -1198,7 +1208,7 @@
             function makeSerializableState(source = state) {
                 const normalized = normalizePayload(source);
                 sortEntries(normalized.entries);
-                normalized.stations = uniqueStations(normalized.stations);
+                normalized.stations = sortStationOptions(normalized.stations);
                 return {
                     schemaVersion: 2,
                     entries: normalized.entries,
@@ -1225,7 +1235,7 @@
             function rememberStations(values) {
                 const stations = uniqueStations(Array.isArray(values) ? values : [values]);
                 if (stations.length === 0) return;
-                state.stations = uniqueStations([...state.stations, ...stations]);
+                state.stations = sortStationOptions([...state.stations, ...stations]);
             }
 
             function parseStationInput(value) {
@@ -1257,7 +1267,7 @@
             function saveStateToLocal() {
                 state = normalizePayload(state);
                 sortEntries(state.entries);
-                state.stations = uniqueStations(state.stations);
+                state.stations = sortStationOptions(state.stations);
                 safeSet(localStorage, STATE_KEY, JSON.stringify(makeSerializableState(state)));
             }
 
@@ -1311,7 +1321,7 @@
 
                 const selectedKeys = new Set(getPendingStations(target).map(stationKey));
                 const query = cleanText(input.value).toLocaleLowerCase('zh-CN');
-                const options = uniqueStations(state.stations).filter(station => {
+                const options = sortStationOptions(state.stations).filter(station => {
                     if (selectedKeys.has(stationKey(station))) return false;
                     return !query || station.toLocaleLowerCase('zh-CN').includes(query);
                 });
@@ -1329,7 +1339,7 @@
             }
 
             function renderStationOptions() {
-                state.stations = uniqueStations(state.stations);
+                state.stations = sortStationOptions(state.stations);
                 renderStationDropdown('add');
                 renderStationDropdown('edit');
             }
@@ -1559,7 +1569,7 @@
             }
 
             function renderStationManager() {
-                state.stations = uniqueStations(state.stations);
+                state.stations = sortStationOptions(state.stations);
 
                 if (state.stations.length === 0) {
                     stationManagerList.innerHTML = '<div class="station-manager-empty">暂无历史车站选项。</div>';
@@ -1612,7 +1622,7 @@
                 );
 
                 state.stations[index] = newStation;
-                state.stations = uniqueStations(state.stations);
+                state.stations = sortStationOptions(state.stations);
 
                 let updatedCount = 0;
                 if (updateEntriesOnRename.checked) {
@@ -1661,7 +1671,7 @@
                 if (!confirm(`确定从下拉菜单删除“${station}”吗？${usageNote}`)) return;
 
                 state.stations.splice(index, 1);
-                state.stations = uniqueStations(state.stations);
+                state.stations = sortStationOptions(state.stations);
                 renderAll();
                 renderStationManager();
                 markLocalChange();
