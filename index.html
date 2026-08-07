@@ -545,6 +545,40 @@
             min-width: 88px;
         }
 
+        /* 配置弹窗：在手机、横屏和软键盘弹出时保持可滚动，操作按钮始终可见。 */
+        #configModal {
+            align-items: flex-start;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding-top: max(0.75rem, env(safe-area-inset-top));
+            padding-right: max(0.75rem, env(safe-area-inset-right));
+            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+            padding-left: max(0.75rem, env(safe-area-inset-left));
+        }
+
+        #configModal .dialog {
+            max-height: calc(100dvh - 1.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+            margin: auto;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #configModal .dialog-actions {
+            position: sticky;
+            bottom: 0;
+            z-index: 4;
+            margin-top: 1rem;
+            padding-top: 0.85rem;
+            padding-bottom: max(0.15rem, env(safe-area-inset-bottom));
+            border-top: 1px solid #e8edf4;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+        }
+
         .btn-primary {
             border-color: #1e293b;
             background: #1e293b;
@@ -786,6 +820,33 @@
 
             .station-manager-row input {
                 grid-column: 1 / -1;
+            }
+
+            #configModal {
+                padding-top: max(0.4rem, env(safe-area-inset-top));
+                padding-right: max(0.4rem, env(safe-area-inset-right));
+                padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
+                padding-left: max(0.4rem, env(safe-area-inset-left));
+            }
+
+            #configModal .dialog {
+                width: 100%;
+                max-height: calc(100dvh - 0.8rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+                padding: 1.2rem;
+                border-radius: 20px;
+            }
+
+            #configModal .dialog-actions {
+                gap: 8px;
+                margin-right: -0.15rem;
+                margin-left: -0.15rem;
+                padding-right: 0.15rem;
+                padding-left: 0.15rem;
+            }
+
+            #configModal .dialog-actions .btn {
+                flex: 1 1 0;
+                min-width: 0;
             }
 
             .back-to-top {
