@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Railway</title>
+    <title>Rail</title>
     <style>
         * {
             box-sizing: border-box;
@@ -187,7 +187,8 @@
             color: #dc2626;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select {
             width: 100%;
             min-height: 45px;
             padding: 0.7rem 1rem;
@@ -195,11 +196,13 @@
             border-radius: 15px;
             background: #ffffff;
             color: #0f172a;
+            font-family: inherit;
             font-size: 0.96rem;
             transition: 0.15s ease;
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: 2px solid #93b4ff;
             outline-offset: 1px;
             border-color: transparent;
@@ -569,6 +572,45 @@
             margin-top: 3px;
         }
 
+        .token-profile-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .token-profile-btn {
+            min-height: 45px;
+            padding: 0.65rem 0.85rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 13px;
+            background: #f8fafc;
+            color: #334155;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .token-profile-btn:hover {
+            background: #eef2f7;
+        }
+
+        .token-profile-btn.danger {
+            border-color: #fecaca;
+            background: #fff7f7;
+            color: #991b1b;
+        }
+
+        .token-profile-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        .token-save-hint {
+            margin-left: 25px;
+        }
+
         .hint-link {
             color: #2563eb;
             text-decoration: none;
@@ -755,7 +797,7 @@
 <body>
     <main class="container">
         <h1 class="page-title">
-            Railway
+            Rail
             <span class="cloud-status">
                 <span class="status-dot" id="statusDot"></span>
                 <span id="statusText">未配置</span>
@@ -910,15 +952,32 @@
     </section>
 
     <section class="overlay hidden" id="configModal" role="dialog" aria-modal="true" aria-labelledby="configHeading">
-        <form class="dialog" id="configForm">
+        <form class="dialog" id="configForm" autocomplete="off">
             <h3 id="configHeading">GitHub 云端配置</h3>
             <p class="dialog-desc">
                 数据按当前网页路径独立保存。配置后，可使用同一 GitHub 数据文件在多个设备间同步。
             </p>
 
             <div class="form-group">
+                <label for="cfgSavedToken">已保存 Token</label>
+                <div class="token-profile-row">
+                    <select id="cfgSavedToken" aria-label="选择已保存的 Token">
+                        <option value="">新增 Token</option>
+                    </select>
+                    <button type="button" class="token-profile-btn" id="cfgNewTokenBtn">新增</button>
+                    <button type="button" class="token-profile-btn danger" id="cfgDeleteTokenBtn" disabled>删除</button>
+                </div>
+                <div class="field-hint">可在本设备保存多个 Token；选择后会自动填充对应的仓库配置。</div>
+            </div>
+
+            <div class="form-group">
+                <label for="cfgTokenName">Token 名称</label>
+                <input type="text" id="cfgTokenName" autocomplete="off" placeholder="例如：铁路仓库">
+            </div>
+
+            <div class="form-group">
                 <label for="cfgOwner">仓库所有者 <span class="required-mark">*</span></label>
-                <input type="text" id="cfgOwner" name="username" autocomplete="username" required>
+                <input type="text" id="cfgOwner" name="github-owner" autocomplete="username" required>
             </div>
 
             <div class="form-group">
@@ -936,22 +995,26 @@
                 <input
                     type="password"
                     id="cfgToken"
-                    name="password"
-                    autocomplete="current-password"
+                    name="github-token-new"
+                    autocomplete="new-password"
+                    spellcheck="false"
                     required
                 >
+                <label class="checkbox-row">
+                    <input type="checkbox" id="saveTokenCheck" checked>
+                    <span>在本设备保存 Token。</span>
+                </label>
+                <div class="field-hint token-save-hint">
+                    若浏览器出现“保存密码”提示，请选择保存；开启浏览器密码同步后，其他设备可自动填充。
+                </div>
                 <div class="field-hint">
                     <a class="hint-link" href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener noreferrer">创建细粒度 Token</a>，仅授权目标仓库并授予 Contents: Read and write。
                 </div>
-                <label class="checkbox-row">
-                    <input type="checkbox" id="saveTokenCheck" checked>
-                    <span>在本设备保存Token。若浏览器出现“保存密码”提示，请选择保存；开启浏览器密码同步后，其他设备可自动填充。</span>
-                </label>
             </div>
 
             <div class="dialog-actions">
                 <button type="button" class="btn" id="configCancelBtn">取消</button>
-                <button type="submit" class="btn btn-primary" id="configSaveBtn">保存并连接</button>
+                <button type="button" class="btn btn-primary" id="configSaveBtn">保存并连接</button>
             </div>
         </form>
     </section>
@@ -990,7 +1053,8 @@
             const NAMESPACE = `rail:${hashText(getPageIdentity())}`;
             const STATE_KEY = `${NAMESPACE}:state_v1`;
             const CONFIG_KEY = `${NAMESPACE}:config_v1`;
-            const TOKEN_LOCAL_KEY = `${NAMESPACE}:token_local`;
+            const TOKEN_LOCAL_KEY = `${NAMESPACE}:token_local`; // 旧版单 Token 键，仅用于迁移
+            const TOKEN_PROFILES_KEY = `${NAMESPACE}:token_profiles_v1`;
             const TOKEN_SESSION_KEY = `${NAMESPACE}:token_session`;
             const SYNC_META_KEY = `${NAMESPACE}:sync_meta_v1`;
             const MAX_SYNC_BYTES = 750 * 1024;
@@ -1001,11 +1065,16 @@
                 stations: []
             };
 
+            let tokenProfiles = [];
+            let selectedTokenProfileId = '';
+
             let config = {
                 owner: '',
                 repo: '',
                 file: 'rail_data.json',
                 token: '',
+                tokenName: '',
+                activeTokenId: '',
                 saveToken: true
             };
 
@@ -1062,12 +1131,17 @@
 
             const configModal = document.getElementById('configModal');
             const configForm = document.getElementById('configForm');
+            const cfgSavedToken = document.getElementById('cfgSavedToken');
+            const cfgTokenName = document.getElementById('cfgTokenName');
+            const cfgNewTokenBtn = document.getElementById('cfgNewTokenBtn');
+            const cfgDeleteTokenBtn = document.getElementById('cfgDeleteTokenBtn');
             const cfgOwner = document.getElementById('cfgOwner');
             const cfgRepo = document.getElementById('cfgRepo');
             const cfgFile = document.getElementById('cfgFile');
             const cfgToken = document.getElementById('cfgToken');
             const saveTokenCheck = document.getElementById('saveTokenCheck');
             const configCancelBtn = document.getElementById('configCancelBtn');
+            const configSaveBtn = document.getElementById('configSaveBtn');
 
             // ---------- 安全存储 ----------
             function safeGet(storage, key) {
@@ -1738,6 +1812,175 @@
             }
 
             // ---------- 配置与 Token ----------
+            function createTokenProfileId() {
+                if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                    return window.crypto.randomUUID();
+                }
+                return `token_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+            }
+
+            function normalizeTokenProfile(item) {
+                if (!item || typeof item !== 'object') return null;
+                const token = cleanText(item.token);
+                if (!token) return null;
+                return {
+                    id: typeof item.id === 'string' && item.id ? item.id : createTokenProfileId(),
+                    name: cleanText(item.name),
+                    token,
+                    owner: cleanText(item.owner),
+                    repo: cleanText(item.repo),
+                    file: cleanText(item.file) || 'rail_data.json',
+                    updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString()
+                };
+            }
+
+            function loadTokenProfiles() {
+                const stored = safeGet(localStorage, TOKEN_PROFILES_KEY);
+                if (!stored) return [];
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (!Array.isArray(parsed)) return [];
+                    return parsed.map(normalizeTokenProfile).filter(Boolean);
+                } catch (error) {
+                    console.error('Token 列表解析失败:', error);
+                    return [];
+                }
+            }
+
+            function saveTokenProfiles() {
+                safeSet(localStorage, TOKEN_PROFILES_KEY, JSON.stringify(tokenProfiles));
+            }
+
+            function getTokenProfileLabel(profile, index) {
+                const suffix = profile.token.length > 4 ? profile.token.slice(-4) : profile.token;
+                const target = [profile.owner, profile.repo].filter(Boolean).join('/');
+                return profile.name || target || `Token ${index + 1} ····${suffix}`;
+            }
+
+            function renderTokenProfileSelect(preferredId = selectedTokenProfileId) {
+                cfgSavedToken.innerHTML = '';
+
+                const newOption = document.createElement('option');
+                newOption.value = '';
+                newOption.textContent = '新增 Token';
+                cfgSavedToken.appendChild(newOption);
+
+                tokenProfiles.forEach((profile, index) => {
+                    const option = document.createElement('option');
+                    option.value = profile.id;
+                    option.textContent = getTokenProfileLabel(profile, index);
+                    cfgSavedToken.appendChild(option);
+                });
+
+                selectedTokenProfileId = tokenProfiles.some(item => item.id === preferredId)
+                    ? preferredId
+                    : '';
+                cfgSavedToken.value = selectedTokenProfileId;
+                cfgDeleteTokenBtn.disabled = !selectedTokenProfileId;
+            }
+
+            function applyTokenProfile(profileId) {
+                selectedTokenProfileId = profileId || '';
+                const profile = tokenProfiles.find(item => item.id === selectedTokenProfileId);
+                if (!profile) {
+                    cfgSavedToken.value = '';
+                    cfgDeleteTokenBtn.disabled = true;
+                    configSaveBtn.disabled = false;
+                    return;
+                }
+
+                cfgTokenName.value = profile.name;
+                cfgToken.value = profile.token;
+                cfgOwner.value = profile.owner;
+                cfgRepo.value = profile.repo;
+                cfgFile.value = profile.file;
+                saveTokenCheck.checked = true;
+                cfgSavedToken.value = profile.id;
+                cfgDeleteTokenBtn.disabled = false;
+                configSaveBtn.disabled = false;
+            }
+
+            function beginNewToken() {
+                selectedTokenProfileId = '';
+                cfgSavedToken.value = '';
+                cfgTokenName.value = '';
+                cfgToken.value = '';
+                saveTokenCheck.checked = true;
+                cfgDeleteTokenBtn.disabled = true;
+                configSaveBtn.disabled = false;
+                setTimeout(() => cfgTokenName.focus(), 0);
+            }
+
+            function persistConfigMetadata() {
+                safeSet(localStorage, CONFIG_KEY, JSON.stringify({
+                    owner: config.owner,
+                    repo: config.repo,
+                    file: config.file,
+                    saveToken: config.saveToken,
+                    activeTokenId: config.activeTokenId
+                }));
+            }
+
+            function deleteSelectedTokenProfile() {
+                const profile = tokenProfiles.find(item => item.id === selectedTokenProfileId);
+                if (!profile) return;
+
+                const label = profile.name || [profile.owner, profile.repo].filter(Boolean).join('/') || '该 Token';
+                if (!confirm(`确定从本设备删除“${label}”吗？`)) return;
+
+                tokenProfiles = tokenProfiles.filter(item => item.id !== profile.id);
+                saveTokenProfiles();
+
+                if (config.activeTokenId === profile.id) {
+                    config.activeTokenId = '';
+                    config.token = '';
+                    config.tokenName = '';
+                    persistConfigMetadata();
+                }
+
+                renderTokenProfileSelect('');
+                beginNewToken();
+                showToast('已从本设备删除该 Token', 'success');
+            }
+
+            function upsertCurrentTokenProfile() {
+                const token = cleanText(cfgToken.value);
+                const owner = cleanText(cfgOwner.value);
+                const repo = cleanText(cfgRepo.value);
+                const file = cleanText(cfgFile.value) || 'rail_data.json';
+                const name = cleanText(cfgTokenName.value);
+                let profile = tokenProfiles.find(item => item.id === selectedTokenProfileId);
+
+                if (!profile) {
+                    profile = tokenProfiles.find(item => item.token === token);
+                }
+
+                if (profile) {
+                    profile.name = name;
+                    profile.token = token;
+                    profile.owner = owner;
+                    profile.repo = repo;
+                    profile.file = file;
+                    profile.updatedAt = new Date().toISOString();
+                } else {
+                    profile = {
+                        id: createTokenProfileId(),
+                        name,
+                        token,
+                        owner,
+                        repo,
+                        file,
+                        updatedAt: new Date().toISOString()
+                    };
+                    tokenProfiles.push(profile);
+                }
+
+                selectedTokenProfileId = profile.id;
+                saveTokenProfiles();
+                renderTokenProfileSelect(profile.id);
+                return profile.id;
+            }
+
             function loadConfig() {
                 let parsed = {};
                 const stored = safeGet(localStorage, CONFIG_KEY);
@@ -1750,51 +1993,78 @@
                     }
                 }
 
-                const localToken = safeGet(localStorage, TOKEN_LOCAL_KEY) || '';
+                tokenProfiles = loadTokenProfiles();
+
+                // 自动迁移旧版单 Token，避免升级后丢失。
+                const legacyToken = safeGet(localStorage, TOKEN_LOCAL_KEY) || '';
+                if (legacyToken && !tokenProfiles.some(item => item.token === legacyToken)) {
+                    tokenProfiles.push({
+                        id: createTokenProfileId(),
+                        name: '已保存 Token',
+                        token: legacyToken,
+                        owner: cleanText(parsed.owner),
+                        repo: cleanText(parsed.repo),
+                        file: cleanText(parsed.file) || 'rail_data.json',
+                        updatedAt: new Date().toISOString()
+                    });
+                    saveTokenProfiles();
+                    safeRemove(localStorage, TOKEN_LOCAL_KEY);
+                }
+
+                const requestedId = typeof parsed.activeTokenId === 'string' ? parsed.activeTokenId : '';
+                const activeProfile = tokenProfiles.find(item => item.id === requestedId)
+                    || tokenProfiles[0]
+                    || null;
                 const sessionToken = safeGet(sessionStorage, TOKEN_SESSION_KEY) || '';
+                const saveToken = typeof parsed.saveToken === 'boolean' ? parsed.saveToken : true;
 
                 config = {
-                    owner: cleanText(parsed.owner),
-                    repo: cleanText(parsed.repo),
-                    file: cleanText(parsed.file) || 'rail_data.json',
-                    token: localToken || sessionToken,
-                    saveToken: localToken.length > 0 || parsed.saveToken !== false
+                    owner: saveToken && activeProfile ? activeProfile.owner : cleanText(parsed.owner),
+                    repo: saveToken && activeProfile ? activeProfile.repo : cleanText(parsed.repo),
+                    file: saveToken && activeProfile
+                        ? activeProfile.file
+                        : (cleanText(parsed.file) || 'rail_data.json'),
+                    token: saveToken && activeProfile ? activeProfile.token : sessionToken,
+                    tokenName: saveToken && activeProfile ? activeProfile.name : '',
+                    activeTokenId: saveToken && activeProfile ? activeProfile.id : '',
+                    saveToken
                 };
 
+                selectedTokenProfileId = config.activeTokenId;
                 fillConfigForm();
             }
 
             function fillConfigForm() {
+                renderTokenProfileSelect(config.activeTokenId || selectedTokenProfileId);
+                cfgTokenName.value = config.tokenName || '';
                 cfgOwner.value = config.owner;
                 cfgRepo.value = config.repo;
                 cfgFile.value = config.file;
                 cfgToken.value = config.token;
-                saveTokenCheck.checked = config.saveToken;
+                saveTokenCheck.checked = config.saveToken !== false;
+                configSaveBtn.disabled = false;
             }
 
             function saveConfig() {
                 config = {
+                    ...config,
                     owner: cleanText(cfgOwner.value),
                     repo: cleanText(cfgRepo.value),
                     file: cleanText(cfgFile.value) || 'rail_data.json',
                     token: cleanText(cfgToken.value),
+                    tokenName: cleanText(cfgTokenName.value),
                     saveToken: saveTokenCheck.checked
                 };
 
-                safeSet(localStorage, CONFIG_KEY, JSON.stringify({
-                    owner: config.owner,
-                    repo: config.repo,
-                    file: config.file,
-                    saveToken: config.saveToken
-                }));
-
                 if (config.saveToken) {
-                    safeSet(localStorage, TOKEN_LOCAL_KEY, config.token);
+                    config.activeTokenId = upsertCurrentTokenProfile();
                     safeRemove(sessionStorage, TOKEN_SESSION_KEY);
                 } else {
-                    safeRemove(localStorage, TOKEN_LOCAL_KEY);
+                    config.activeTokenId = '';
                     safeSet(sessionStorage, TOKEN_SESSION_KEY, config.token);
                 }
+
+                persistConfigMetadata();
             }
 
             function isConfigValid() {
@@ -1806,35 +2076,20 @@
                 return `${config.owner}/${config.repo}/${config.file}`;
             }
 
-            async function requestBrowserCredentialSave() {
-                if (!config.saveToken || !config.token) return;
-                if (!window.PasswordCredential || !navigator.credentials?.store) return;
-
-                try {
-                    const credential = new PasswordCredential({
-                        id: config.owner || 'github',
-                        name: `Rail GitHub Token (${config.owner}/${config.repo})`,
-                        password: config.token
-                    });
-                    await navigator.credentials.store(credential);
-                } catch (error) {
-                    // 不同浏览器支持程度不同；失败不影响本地保存和同步。
-                    console.info('浏览器未保存凭据:', error);
-                }
-            }
-
             function openConfigModal() {
                 fillConfigForm();
+                configSaveBtn.disabled = false;
                 configModal.classList.remove('hidden');
-                setTimeout(() => cfgOwner.focus(), 50);
+                setTimeout(() => cfgToken.focus(), 50);
             }
 
             function closeConfigModal() {
                 configModal.classList.add('hidden');
             }
 
-            async function saveConfigAndConnect(event) {
-                event.preventDefault();
+            function saveConfigAndConnect(event) {
+                if (event) event.preventDefault();
+                configSaveBtn.disabled = false;
 
                 const owner = cleanText(cfgOwner.value);
                 const repo = cleanText(cfgRepo.value);
@@ -1858,7 +2113,6 @@
 
                 const previousTarget = getSyncTarget();
                 saveConfig();
-                await requestBrowserCredentialSave();
 
                 if (previousTarget !== getSyncTarget()) {
                     syncMeta = createEmptySyncMeta(getSyncTarget());
@@ -2363,7 +2617,27 @@
 
             configBtn.addEventListener('click', openConfigModal);
             configCancelBtn.addEventListener('click', closeConfigModal);
-            configForm.addEventListener('submit', saveConfigAndConnect);
+            configSaveBtn.addEventListener('click', saveConfigAndConnect);
+            configForm.addEventListener('submit', event => {
+                event.preventDefault();
+                saveConfigAndConnect();
+            });
+
+            cfgSavedToken.addEventListener('change', () => {
+                if (cfgSavedToken.value) {
+                    applyTokenProfile(cfgSavedToken.value);
+                } else {
+                    beginNewToken();
+                }
+            });
+            cfgNewTokenBtn.addEventListener('click', beginNewToken);
+            cfgDeleteTokenBtn.addEventListener('click', deleteSelectedTokenProfile);
+
+            [cfgTokenName, cfgToken, cfgOwner, cfgRepo, cfgFile].forEach(input => {
+                input.addEventListener('input', () => {
+                    configSaveBtn.disabled = false;
+                });
+            });
 
             configModal.addEventListener('click', event => {
                 if (event.target === configModal) closeConfigModal();
