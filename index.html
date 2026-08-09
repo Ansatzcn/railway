@@ -437,27 +437,33 @@
             border-bottom: 0;
         }
 
-        /* 同一车次按车站拆分为多行；车次和操作单元格跨行显示。 */
+        /* 每个车次占一行；车站按原顺序显示在车次下方。 */
         .col-train {
             min-width: 150px;
-            white-space: nowrap;
             color: #0f172a;
             font-weight: 700;
             vertical-align: top !important;
         }
 
-        .col-station {
-            min-width: 180px;
-            white-space: nowrap;
+        .train-stations {
+            margin-top: 0.28rem;
             color: #334155;
+            font-weight: 400;
+            line-height: 1.55;
+        }
+
+        .train-station {
+            display: block;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .train-stations-empty {
+            color: #94a3b8;
         }
 
         .rail-table tbody tr.train-group-start:not(:first-child) td {
             border-top: 2px solid #dbe3ed;
-        }
-
-        .rail-table td[rowspan] {
-            vertical-align: top;
         }
 
         .col-actions {
@@ -932,13 +938,12 @@
                     <thead>
                         <tr>
                             <th>车次</th>
-                            <th>车站</th>
                             <th class="col-actions">操作</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr class="empty-row">
-                            <td colspan="3">加载中...</td>
+                            <td colspan="2">加载中...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1507,26 +1512,29 @@
                 countDisplay.textContent = String(state.entries.length);
 
                 if (state.entries.length === 0) {
-                    tableBody.innerHTML = '<tr class="empty-row"><td colspan="3">暂无条目，请添加车次。</td></tr>';
+                    tableBody.innerHTML = '<tr class="empty-row"><td colspan="2">暂无条目，请添加车次。</td></tr>';
                     return;
                 }
 
                 tableBody.innerHTML = state.entries.map((item, index) => {
-                    const stations = item.stations.length ? item.stations : [''];
-                    const rowSpan = stations.length;
+                    const stationsHtml = item.stations.length
+                        ? `<div class="train-stations">${item.stations.map(station =>
+                            `<span class="train-station">${escapeHtml(station)}</span>`
+                        ).join('')}</div>`
+                        : '<div class="train-stations train-stations-empty">—</div>';
 
-                    return stations.map((station, stationIndex) => `
-                        <tr class="${stationIndex === 0 ? 'train-group-start' : ''}" data-index="${index}" data-station-index="${stationIndex}">
-                            ${stationIndex === 0 ? `<td class="col-train" rowspan="${rowSpan}">${escapeHtml(item.train)}</td>` : ''}
-                            <td class="col-station">${station ? escapeHtml(station) : '<span style="color:#94a3b8;">—</span>'}</td>
-                            ${stationIndex === 0 ? `
-                                <td class="col-actions" rowspan="${rowSpan}">
-                                    <button type="button" class="action-btn edit-btn" data-index="${index}">编辑</button>
-                                    <button type="button" class="action-btn delete-btn" data-index="${index}">删除</button>
-                                </td>
-                            ` : ''}
+                    return `
+                        <tr class="train-group-start" data-index="${index}">
+                            <td class="col-train">
+                                <div>${escapeHtml(item.train)}</div>
+                                ${stationsHtml}
+                            </td>
+                            <td class="col-actions">
+                                <button type="button" class="action-btn edit-btn" data-index="${index}">编辑</button>
+                                <button type="button" class="action-btn delete-btn" data-index="${index}">删除</button>
+                            </td>
                         </tr>
-                    `).join('');
+                    `;
                 }).join('');
             }
 
