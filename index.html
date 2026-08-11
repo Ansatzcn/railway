@@ -551,7 +551,8 @@
             min-width: 88px;
         }
 
-        /* 配置弹窗：在手机、横屏和软键盘弹出时保持可滚动，操作按钮始终可见。 */
+        /* 编辑/配置弹窗：在手机、横屏和软键盘弹出时保持可滚动，操作按钮始终可见。 */
+        #editModal,
         #configModal {
             align-items: flex-start;
             overflow-x: hidden;
@@ -563,6 +564,7 @@
             padding-left: max(0.75rem, env(safe-area-inset-left));
         }
 
+        #editModal .dialog,
         #configModal .dialog {
             max-height: calc(100dvh - 1.5rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
             margin: auto;
@@ -573,6 +575,7 @@
             -webkit-overflow-scrolling: touch;
         }
 
+        #editModal .dialog-actions,
         #configModal .dialog-actions {
             position: sticky;
             bottom: 0;
@@ -828,6 +831,7 @@
                 grid-column: 1 / -1;
             }
 
+            #editModal,
             #configModal {
                 padding-top: max(0.4rem, env(safe-area-inset-top));
                 padding-right: max(0.4rem, env(safe-area-inset-right));
@@ -835,6 +839,7 @@
                 padding-left: max(0.4rem, env(safe-area-inset-left));
             }
 
+            #editModal .dialog,
             #configModal .dialog {
                 width: 100%;
                 max-height: calc(100dvh - 0.8rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
@@ -842,6 +847,7 @@
                 border-radius: 20px;
             }
 
+            #editModal .dialog-actions,
             #configModal .dialog-actions {
                 gap: 8px;
                 margin-right: -0.15rem;
@@ -850,6 +856,7 @@
                 padding-left: 0.15rem;
             }
 
+            #editModal .dialog-actions .btn,
             #configModal .dialog-actions .btn {
                 flex: 1 1 0;
                 min-width: 0;
