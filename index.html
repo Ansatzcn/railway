@@ -467,9 +467,20 @@
         }
 
         .col-train {
-            position: relative;
-            padding-right: 4.7rem !important;
-            padding-top: 2.1rem !important;
+            vertical-align: top !important;
+        }
+
+        .train-title-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .train-title-text {
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .action-btn {
@@ -482,9 +493,7 @@
         }
 
         .edit-btn {
-            position: absolute;
-            right: 1rem;
-            top: 0.65rem;
+            flex: 0 0 auto;
             margin: 0;
             padding: 0;
             border: 0;
@@ -493,6 +502,7 @@
             color: #64748b;
             font-size: 0.8rem;
             font-weight: 500;
+            line-height: 1.55;
             text-decoration: underline;
             text-underline-offset: 2px;
         }
@@ -847,14 +857,8 @@
                 font-size: 0.85rem;
             }
 
-            .col-train {
-                padding-right: 4rem !important;
-                padding-top: 2rem !important;
-            }
-
-            .edit-btn {
-                right: 0.8rem;
-                top: 0.55rem;
+            .train-title-row {
+                gap: 0.75rem;
             }
 
             .station-manager-row {
@@ -1568,9 +1572,11 @@
                     return `
                         <tr class="train-group-start" data-index="${index}">
                             <td class="col-train">
-                                <div>${escapeHtml(item.train)}</div>
+                                <div class="train-title-row">
+                                    <div class="train-title-text">${escapeHtml(item.train)}</div>
+                                    <button type="button" class="edit-btn" data-index="${index}">编辑</button>
+                                </div>
                                 ${stationsHtml}
-                                <button type="button" class="edit-btn" data-index="${index}">编辑</button>
                             </td>
                         </tr>
                     `;
