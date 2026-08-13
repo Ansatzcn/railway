@@ -1290,7 +1290,22 @@
                 numeric: true
             });
 
-            const trainCollator = new Intl.Collator('zh-CN-u-co-pinyin', {
+            // 车次排序分三组：
+            // 1. 数字开头；2. A-Z 字母开头；3. 汉字开头（按拼音）。
+            // numeric:true 保证 2 < 10、G2 < G10。
+            const numericTrainCollator = new Intl.Collator('zh-CN', {
+                sensitivity: 'base',
+                numeric: true,
+                ignorePunctuation: false
+            });
+
+            const latinTrainCollator = new Intl.Collator('en', {
+                sensitivity: 'base',
+                numeric: true,
+                ignorePunctuation: false
+            });
+
+            const pinyinTrainCollator = new Intl.Collator('zh-CN-u-co-pinyin', {
                 sensitivity: 'base',
                 numeric: true,
                 ignorePunctuation: false
@@ -1381,9 +1396,44 @@
                 return { entries, stations };
             }
 
+            function getTrainSortGroup(value) {
+                const text = cleanText(value);
+                const first = Array.from(text)[0] || '';
+
+                if (/^[0-9]$/.test(first)) return 0;
+                if (/^[A-Za-z]$/.test(first)) return 1;
+                if (/^\p{Script=Han}$/u.test(first)) return 2;
+                return 3;
+            }
+
+            function compareTrainNumbers(a, b) {
+                const textA = cleanText(a);
+                const textB = cleanText(b);
+                const groupA = getTrainSortGroup(textA);
+                const groupB = getTrainSortGroup(textB);
+
+                if (groupA !== groupB) return groupA - groupB;
+
+                let result = 0;
+
+                if (groupA === 0) {
+                    result = numericTrainCollator.compare(textA, textB);
+                } else if (groupA === 1) {
+                    result = latinTrainCollator.compare(textA, textB);
+                } else {
+                    // 汉字开头以及其他少见字符，统一使用中文拼音规则作为组内排序。
+                    result = pinyinTrainCollator.compare(textA, textB);
+                }
+
+                // Collator 判断相等时用原字符回退，保证排序结果稳定确定。
+                if (result === 0 && textA !== textB) {
+                    return textA < textB ? -1 : 1;
+                }
+                return result;
+            }
+
             function sortEntries(entries = state.entries) {
-                // 按车次的字母/数字进行自然升序，例如 G2 排在 G10 前。
-                entries.sort((a, b) => trainCollator.compare(cleanText(a.train), cleanText(b.train)));
+                entries.sort((a, b) => compareTrainNumbers(a.train, b.train));
 
                 // 车站只去重，不排序，严格保留用户输入或选择的先后顺序。
                 for (const entry of entries) {
