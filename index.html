@@ -272,22 +272,75 @@
             display: none;
         }
 
+        .station-dropdown-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            align-items: stretch;
+            gap: 6px;
+            width: 100%;
+            min-width: 0;
+            padding: 0.2rem 0;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .station-dropdown-row:last-child {
+            border-bottom: 0;
+        }
+
         .station-dropdown-option {
             display: block;
             width: 100%;
-            padding: 0.62rem 0.75rem;
+            min-width: 0;
+            padding: 0.58rem 0.68rem;
             border: 0;
-            border-radius: 10px;
+            border-radius: 9px;
             background: transparent;
             color: #0f172a;
             text-align: left;
             font-size: 0.9rem;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         .station-dropdown-option:hover,
         .station-dropdown-option:focus-visible {
             outline: none;
             background: #f1f5f9;
+        }
+
+        .station-dropdown-edit,
+        .station-dropdown-delete {
+            align-self: center;
+            min-height: 32px;
+            padding: 0.35rem 0.56rem;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            font-size: 0.76rem;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .station-dropdown-edit {
+            color: #2563eb;
+        }
+
+        .station-dropdown-edit:hover,
+        .station-dropdown-edit:focus-visible {
+            outline: none;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .station-dropdown-delete {
+            color: #b91c1c;
+        }
+
+        .station-dropdown-delete:hover,
+        .station-dropdown-delete:focus-visible {
+            outline: none;
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         .station-dropdown-empty {
@@ -705,67 +758,6 @@
             text-decoration: underline;
         }
 
-        .station-manager-list {
-            max-height: min(52vh, 430px);
-            overflow-y: auto;
-            margin-top: 0.4rem;
-            padding-right: 4px;
-        }
-
-        .station-manager-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto auto;
-            align-items: center;
-            gap: 8px;
-            padding: 0.7rem 0;
-            border-bottom: 1px solid #edf2f7;
-        }
-
-        .station-manager-row:last-child {
-            border-bottom: 0;
-        }
-
-        .station-manager-row input {
-            width: 100%;
-            min-width: 0;
-            min-height: 40px;
-            padding: 0.55rem 0.8rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            background: #ffffff;
-            color: #0f172a;
-        }
-
-        .station-manager-row input:focus {
-            outline: 2px solid #93b4ff;
-            outline-offset: 1px;
-            border-color: transparent;
-        }
-
-        .station-manager-empty {
-            padding: 2rem 0.8rem;
-            color: #94a3b8;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .station-manager-note {
-            margin-top: 0.8rem;
-            color: #64748b;
-            font-size: 0.78rem;
-            line-height: 1.5;
-        }
-
-        .station-save-btn {
-            background: #dbeafe;
-            color: #1e3a8a;
-        }
-
-        .station-delete-btn {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
         .toast {
             position: fixed;
             left: 50%;
@@ -865,14 +857,6 @@
                 gap: 0.75rem;
             }
 
-            .station-manager-row {
-                grid-template-columns: minmax(0, 1fr) auto;
-            }
-
-            .station-manager-row input {
-                grid-column: 1 / -1;
-            }
-
             #editModal,
             #configModal {
                 padding-top: max(0.4rem, env(safe-area-inset-top));
@@ -924,7 +908,6 @@
             <div class="toolbar-group">
                 <button type="button" class="btn btn-sync" id="syncBtn">同步</button>
                 <button type="button" class="btn" id="configBtn">配置</button>
-                <button type="button" class="btn" id="manageStationsBtn">编辑</button>
                 <button type="button" class="btn" id="exportBtn">导出</button>
                 <button type="button" class="btn" id="importBtn">导入</button>
                 <input type="file" id="fileInput" accept=".json,application/json" hidden>
@@ -1041,27 +1024,6 @@
                 <button type="button" class="btn btn-danger" id="editDeleteBtn">删除</button>
                 <button type="button" class="btn" id="editCancelBtn">取消</button>
                 <button type="button" class="btn btn-primary" id="editSaveBtn">保存</button>
-            </div>
-        </div>
-    </section>
-
-    <section class="overlay hidden" id="stationManagerModal" role="dialog" aria-modal="true" aria-labelledby="stationManagerHeading">
-        <div class="dialog">
-            <h3 id="stationManagerHeading">管理车站</h3>
-            <p class="dialog-desc">
-                可修改或删除下拉菜单中的历史车站。修改名称时可同步更新现有条目；删除只移除候选项，不删除车次记录。
-            </p>
-
-            <label class="checkbox-row">
-                <input type="checkbox" id="updateEntriesOnRename" checked>
-                <span>修改车站名称时，同步更新所有使用该车站的条目</span>
-            </label>
-
-            <div class="station-manager-list" id="stationManagerList"></div>
-            <p class="station-manager-note">候选项会继续按拼音首字母排序。删除后的名称若再次用于新增或编辑条目，会重新进入候选列表。</p>
-
-            <div class="dialog-actions">
-                <button type="button" class="btn btn-primary" id="stationManagerCloseBtn">完成</button>
             </div>
         </div>
     </section>
@@ -1218,7 +1180,6 @@
             const countDisplay = document.getElementById('countDisplay');
             const syncBtn = document.getElementById('syncBtn');
             const configBtn = document.getElementById('configBtn');
-            const manageStationsBtn = document.getElementById('manageStationsBtn');
             const exportBtn = document.getElementById('exportBtn');
             const importBtn = document.getElementById('importBtn');
             const fileInput = document.getElementById('fileInput');
@@ -1240,10 +1201,6 @@
             const editCancelBtn = document.getElementById('editCancelBtn');
             const editSaveBtn = document.getElementById('editSaveBtn');
 
-            const stationManagerModal = document.getElementById('stationManagerModal');
-            const stationManagerList = document.getElementById('stationManagerList');
-            const updateEntriesOnRename = document.getElementById('updateEntriesOnRename');
-            const stationManagerCloseBtn = document.getElementById('stationManagerCloseBtn');
 
             const configModal = document.getElementById('configModal');
             const configForm = document.getElementById('configForm');
@@ -1568,12 +1525,26 @@
 
                 dropdown.innerHTML = options.length
                     ? options.map(station => `
-                        <button
-                            type="button"
-                            class="station-dropdown-option"
-                            role="option"
-                            data-station="${escapeAttribute(station)}"
-                        >${escapeHtml(station)}</button>
+                        <div class="station-dropdown-row" data-station="${escapeAttribute(station)}">
+                            <button
+                                type="button"
+                                class="station-dropdown-option"
+                                role="option"
+                                data-station="${escapeAttribute(station)}"
+                            >${escapeHtml(station)}</button>
+                            <button
+                                type="button"
+                                class="station-dropdown-edit"
+                                data-station="${escapeAttribute(station)}"
+                                aria-label="编辑车站 ${escapeAttribute(station)}"
+                            >编辑</button>
+                            <button
+                                type="button"
+                                class="station-dropdown-delete"
+                                data-station="${escapeAttribute(station)}"
+                                aria-label="删除车站 ${escapeAttribute(station)}"
+                            >删除</button>
+                        </div>
                     `).join('')
                     : '<div class="station-dropdown-empty">暂无可选车站</div>';
             }
@@ -1806,50 +1777,21 @@
                 return true;
             }
 
-            // ---------- 历史车站管理 ----------
+            // ---------- 历史车站下拉项编辑 / 删除 ----------
             function stationKey(value) {
                 return cleanText(value).toLocaleLowerCase('zh-CN');
             }
 
-            function renderStationManager() {
-                state.stations = sortStationOptions(state.stations);
-
-                if (state.stations.length === 0) {
-                    stationManagerList.innerHTML = '<div class="station-manager-empty">暂无历史车站选项。</div>';
-                    return;
-                }
-
-                stationManagerList.innerHTML = state.stations.map((station, index) => `
-                    <div class="station-manager-row" data-index="${index}">
-                        <input
-                            type="text"
-                            class="station-manager-input"
-                            value="${escapeAttribute(station)}"
-                            aria-label="修改车站 ${escapeAttribute(station)}"
-                        >
-                        <button type="button" class="action-btn station-save-btn" data-index="${index}">保存</button>
-                        <button type="button" class="action-btn station-delete-btn" data-index="${index}">删除</button>
-                    </div>
-                `).join('');
-            }
-
-            function openStationManager() {
-                renderStationManager();
-                stationManagerModal.classList.remove('hidden');
-            }
-
-            function closeStationManager() {
-                stationManagerModal.classList.add('hidden');
-            }
-
-            function renameStation(index, inputElement) {
-                const oldStation = state.stations[index];
+            function renameStationOption(oldValue) {
+                const oldStation = state.stations.find(station => stationKey(station) === stationKey(oldValue));
                 if (!oldStation) return;
 
-                const newStation = cleanText(inputElement?.value);
+                const nextValue = prompt('编辑车站：', oldStation);
+                if (nextValue === null) return;
+
+                const newStation = cleanText(nextValue);
                 if (!newStation) {
                     showToast('车站名称不能为空', 'error');
-                    inputElement?.focus();
                     return;
                 }
 
@@ -1860,26 +1802,27 @@
 
                 const oldKey = stationKey(oldStation);
                 const newKey = stationKey(newStation);
-                const duplicate = state.stations.some((station, stationIndex) =>
-                    stationIndex !== index && stationKey(station) === newKey
+                const duplicate = state.stations.some(station =>
+                    stationKey(station) === newKey && stationKey(station) !== oldKey
                 );
 
-                state.stations[index] = newStation;
-                state.stations = sortStationOptions(state.stations);
+                // 修改后立即重新按拼音排序；改成已有名称时由 sortStationOptions 自动合并。
+                state.stations = sortStationOptions(
+                    state.stations.map(station => stationKey(station) === oldKey ? newStation : station)
+                );
 
+                // 同步更新已有车次中的同名车站，保持候选项与总表一致。
                 let updatedCount = 0;
-                if (updateEntriesOnRename.checked) {
-                    state.entries = state.entries.map(entry => {
-                        let changed = false;
-                        const stations = entry.stations.map(station => {
-                            if (stationKey(station) !== oldKey) return station;
-                            changed = true;
-                            updatedCount += 1;
-                            return newStation;
-                        });
-                        return changed ? { ...entry, stations: uniqueStations(stations) } : entry;
+                state.entries = state.entries.map(entry => {
+                    let changed = false;
+                    const stations = entry.stations.map(station => {
+                        if (stationKey(station) !== oldKey) return station;
+                        changed = true;
+                        updatedCount += 1;
+                        return newStation;
                     });
-                }
+                    return changed ? { ...entry, stations: uniqueStations(stations) } : entry;
+                });
 
                 pendingAddStations = uniqueStations(
                     pendingAddStations.map(station => stationKey(station) === oldKey ? newStation : station)
@@ -1889,18 +1832,17 @@
                 );
 
                 renderAll();
-                renderStationManager();
                 markLocalChange();
 
                 if (duplicate) {
-                    showToast(`已合并为“${newStation}”${updatedCount ? `，并更新 ${updatedCount} 个条目` : ''}`, 'success');
+                    showToast(`已合并为“${newStation}”${updatedCount ? `，并更新 ${updatedCount} 处使用` : ''}`, 'success');
                 } else {
-                    showToast(`已修改为“${newStation}”${updatedCount ? `，并更新 ${updatedCount} 个条目` : ''}`, 'success');
+                    showToast(`已修改为“${newStation}”${updatedCount ? `，并更新 ${updatedCount} 处使用` : ''}`, 'success');
                 }
             }
 
-            function deleteStationOption(index) {
-                const station = state.stations[index];
+            function deleteStationOptionByValue(value) {
+                const station = state.stations.find(item => stationKey(item) === stationKey(value));
                 if (!station) return;
 
                 const usedCount = state.entries.reduce(
@@ -1913,10 +1855,10 @@
 
                 if (!confirm(`确定从下拉菜单删除“${station}”吗？${usageNote}`)) return;
 
-                state.stations.splice(index, 1);
-                state.stations = sortStationOptions(state.stations);
+                state.stations = sortStationOptions(
+                    state.stations.filter(item => stationKey(item) !== stationKey(station))
+                );
                 renderAll();
-                renderStationManager();
                 markLocalChange();
                 showToast(`已从候选项删除“${station}”`, 'success');
             }
@@ -2661,6 +2603,19 @@
             stationDropdown.addEventListener('mousedown', event => event.preventDefault());
             stationDropdown.addEventListener('click', event => {
                 event.stopPropagation();
+
+                const editButton = event.target.closest('.station-dropdown-edit');
+                if (editButton) {
+                    renameStationOption(editButton.dataset.station);
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.station-dropdown-delete');
+                if (deleteButton) {
+                    deleteStationOptionByValue(deleteButton.dataset.station);
+                    return;
+                }
+
                 const option = event.target.closest('.station-dropdown-option');
                 if (!option) return;
                 selectStationFromDropdown(option.dataset.station, 'add');
@@ -2719,6 +2674,19 @@
             editStationDropdown.addEventListener('mousedown', event => event.preventDefault());
             editStationDropdown.addEventListener('click', event => {
                 event.stopPropagation();
+
+                const editButton = event.target.closest('.station-dropdown-edit');
+                if (editButton) {
+                    renameStationOption(editButton.dataset.station);
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.station-dropdown-delete');
+                if (deleteButton) {
+                    deleteStationOptionByValue(deleteButton.dataset.station);
+                    return;
+                }
+
                 const option = event.target.closest('.station-dropdown-option');
                 if (!option) return;
                 selectStationFromDropdown(option.dataset.station, 'edit');
@@ -2750,38 +2718,6 @@
 
             editModal.addEventListener('click', event => {
                 if (event.target === editModal) closeEditModal();
-            });
-
-            manageStationsBtn.addEventListener('click', openStationManager);
-            stationManagerCloseBtn.addEventListener('click', closeStationManager);
-
-            stationManagerList.addEventListener('click', event => {
-                const saveButton = event.target.closest('.station-save-btn');
-                const deleteButton = event.target.closest('.station-delete-btn');
-                const button = saveButton || deleteButton;
-                if (!button) return;
-
-                const index = Number.parseInt(button.dataset.index, 10);
-                if (!Number.isInteger(index) || !state.stations[index]) return;
-
-                if (saveButton) {
-                    const row = saveButton.closest('.station-manager-row');
-                    renameStation(index, row?.querySelector('.station-manager-input'));
-                } else {
-                    deleteStationOption(index);
-                }
-            });
-
-            stationManagerList.addEventListener('keydown', event => {
-                if (event.key !== 'Enter' || !event.target.matches('.station-manager-input')) return;
-                event.preventDefault();
-                const row = event.target.closest('.station-manager-row');
-                const index = Number.parseInt(row?.dataset.index, 10);
-                if (Number.isInteger(index)) renameStation(index, event.target);
-            });
-
-            stationManagerModal.addEventListener('click', event => {
-                if (event.target === stationManagerModal) closeStationManager();
             });
 
             configBtn.addEventListener('click', openConfigModal);
@@ -2835,7 +2771,6 @@
                     return;
                 }
                 if (!editModal.classList.contains('hidden')) closeEditModal();
-                if (!stationManagerModal.classList.contains('hidden')) closeStationManager();
                 if (!configModal.classList.contains('hidden')) closeConfigModal();
             });
 
