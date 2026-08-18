@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="app-build" content="2026-08-18-edit-selected-station-rows-sync-v1">
+    <meta name="app-build" content="2026-08-18-backtop-arrow-outside-table-v1">
     <title>Railway</title>
     <style>
         * {
@@ -390,7 +390,21 @@
         }
 
         .station-selected-label {
-            cursor: default;
+            cursor: text;
+        }
+
+        .station-selected-inline-input {
+            width: 100%;
+            min-width: 0;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #0f172a;
+            padding: 0.38rem 0.55rem;
+            font: inherit;
+            line-height: 1.25;
+            outline: 2px solid rgba(37, 99, 235, 0.18);
+            outline-offset: 0;
         }
 
         .station-chip {
@@ -814,27 +828,45 @@
 
         .back-to-top {
             position: fixed;
-            right: 16px;
+            /*
+             * 按钮放在主容器右侧的页面留白中：
+             * 宽屏时紧贴 1100px 主容器外侧；窄屏时退到视口最右侧，
+             * 不覆盖总表内容。
+             */
+            right: max(2px, calc((100vw - min(calc(100vw - 2rem), 1100px)) / 2 - 14px));
             top: 70%;
             z-index: 900;
-            padding: 0.45rem 0.72rem;
+            width: 14px;
+            height: 32px;
+            padding: 0;
             transform: translateY(-50%);
-            border: 1px solid #2563eb;
-            border-radius: 999px;
-            background: #2563eb;
-            color: #ffffff;
-            font-size: 0.95rem;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: #2563eb;
+            font-family: "Arial Black", "Segoe UI Symbol", system-ui, sans-serif;
+            font-size: 0;
             font-weight: 900;
             line-height: 1;
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.24);
-            transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease, background 0.18s ease;
+            box-shadow: none;
+            transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease;
+        }
+
+        .back-to-top-icon {
+            display: inline-block;
+            color: #2563eb;
+            font-size: 1.35rem;
+            font-weight: 900;
+            line-height: 1;
+            transform: scaleX(1.22);
+            transform-origin: center;
         }
 
         .back-to-top.visible {
-            opacity: 0.92;
+            opacity: 0.96;
             visibility: visible;
             pointer-events: auto;
         }
@@ -842,10 +874,15 @@
         .back-to-top:hover,
         .back-to-top:focus-visible {
             opacity: 1;
-            background: #1d4ed8;
-            border-color: #1d4ed8;
+            color: #1d4ed8;
+            background: transparent;
             transform: translateY(calc(-50% - 2px));
             outline: none;
+        }
+
+        .back-to-top:hover .back-to-top-icon,
+        .back-to-top:focus-visible .back-to-top-icon {
+            color: #1d4ed8;
         }
 
         @media (max-width: 700px) {
@@ -917,7 +954,14 @@
             }
 
             .back-to-top {
-                right: 8px;
+                right: max(1px, calc((100vw - calc(100vw - 1.6rem)) / 2 - 12px));
+                width: 12px;
+                height: 30px;
+            }
+
+            .back-to-top-icon {
+                font-size: 1.2rem;
+                transform: scaleX(1.18);
             }
         }
     </style>
@@ -1132,7 +1176,7 @@
         </form>
     </section>
 
-    <button type="button" class="back-to-top" id="backToTopBtn" aria-label="回到顶部" title="回到顶部">↑</button>
+    <button type="button" class="back-to-top" id="backToTopBtn" aria-label="回到顶部" title="回到顶部"><span class="back-to-top-icon" aria-hidden="true">↑</span></button>
     <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
     <script>
@@ -1717,7 +1761,7 @@
                 if (target === 'edit') {
                     container.innerHTML = stations.map((station, index) => `
                         <div class="station-dropdown-row station-selected-row" data-station="${escapeAttribute(station)}">
-                            <div class="station-selected-label">${escapeHtml(station)}</div>
+                            <div class="station-selected-label" data-station="${escapeAttribute(station)}" title="单击编辑车站">${escapeHtml(station)}</div>
                             <button
                                 type="button"
                                 class="station-dropdown-edit station-selected-edit"
@@ -1978,25 +2022,21 @@
                 return cleanText(value).toLocaleLowerCase('zh-CN');
             }
 
-            function renameStationOption(oldValue) {
+            function applyStationRename(oldValue, nextValue) {
                 const requested = cleanText(oldValue);
                 const oldStation = state.stations.find(station => stationKey(station) === stationKey(requested))
                     || pendingEditStations.find(station => stationKey(station) === stationKey(requested))
                     || state.entries.flatMap(entry => entry.stations).find(station => stationKey(station) === stationKey(requested));
-                if (!oldStation) return;
-
-                const nextValue = prompt('编辑车站：', oldStation);
-                if (nextValue === null) return;
+                if (!oldStation) return false;
 
                 const newStation = cleanText(nextValue);
                 if (!newStation) {
                     showToast('车站名称不能为空', 'error');
-                    return;
+                    return false;
                 }
 
                 if (newStation === oldStation) {
-                    showToast('车站名称未发生变化', 'info');
-                    return;
+                    return true;
                 }
 
                 const oldKey = stationKey(oldStation);
@@ -2039,6 +2079,83 @@
                 } else {
                     showToast(`已修改为“${newStation}”${updatedCount ? `，并更新 ${updatedCount} 处使用` : ''}`, 'success');
                 }
+                return true;
+            }
+
+            function renameStationOption(oldValue) {
+                const requested = cleanText(oldValue);
+                const oldStation = state.stations.find(station => stationKey(station) === stationKey(requested))
+                    || pendingEditStations.find(station => stationKey(station) === stationKey(requested))
+                    || state.entries.flatMap(entry => entry.stations).find(station => stationKey(station) === stationKey(requested));
+                if (!oldStation) return;
+
+                const nextValue = prompt('编辑车站：', oldStation);
+                if (nextValue === null) return;
+                applyStationRename(oldStation, nextValue);
+            }
+
+            function beginSelectedStationInlineEdit(oldValue, row) {
+                const station = cleanText(oldValue);
+                if (!station || !row) return;
+
+                const label = row.querySelector('.station-selected-label');
+                if (!label) return;
+
+                // 同一时间只允许编辑一个已选车站。
+                renderPendingStations();
+                const refreshedRow = [...editSelectedStations.querySelectorAll('.station-selected-row')]
+                    .find(item => stationKey(item.dataset.station) === stationKey(station));
+                if (!refreshedRow) return;
+
+                const refreshedLabel = refreshedRow.querySelector('.station-selected-label');
+                if (!refreshedLabel) return;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'station-selected-inline-input';
+                input.value = station;
+                input.setAttribute('aria-label', `编辑车站 ${station}`);
+                refreshedLabel.replaceWith(input);
+
+                const finish = save => {
+                    if (!input.isConnected) return;
+                    if (!save) {
+                        renderPendingStations();
+                        return;
+                    }
+                    const nextValue = cleanText(input.value);
+                    if (!nextValue) {
+                        showToast('车站名称不能为空', 'error');
+                        input.focus();
+                        input.setSelectionRange(0, 0);
+                        return;
+                    }
+                    if (nextValue === station) {
+                        renderPendingStations();
+                        return;
+                    }
+                    applyStationRename(station, nextValue);
+                };
+
+                input.addEventListener('keydown', event => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        finish(true);
+                    } else if (event.key === 'Escape') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        finish(false);
+                    }
+                });
+
+                input.addEventListener('click', event => event.stopPropagation());
+
+                // 关键修改：进入编辑后，光标固定放到首字之前，而不是末尾。
+                requestAnimationFrame(() => {
+                    input.focus();
+                    input.setSelectionRange(0, 0);
+                });
             }
 
             function deleteStationOptionByValue(value) {
@@ -2911,9 +3028,17 @@
             });
 
             editSelectedStations.addEventListener('click', event => {
+                const stationLabel = event.target.closest('.station-selected-label[data-station]');
+                if (stationLabel) {
+                    const row = stationLabel.closest('.station-selected-row');
+                    beginSelectedStationInlineEdit(stationLabel.dataset.station, row);
+                    return;
+                }
+
                 const editButton = event.target.closest('.station-selected-edit');
                 if (editButton) {
-                    renameStationOption(editButton.dataset.station);
+                    const row = editButton.closest('.station-selected-row');
+                    beginSelectedStationInlineEdit(editButton.dataset.station, row);
                     return;
                 }
 
