@@ -1689,11 +1689,20 @@
                     return;
                 }
 
-                // 3. 添加区已经选好至少一个车站、输入框为空时，Enter 等同于点击主“添加”按钮。
+                // 3. 输入框为空时：
+                //    添加区已经选好至少一个车站，Enter 等同于点击主“添加”按钮；
+                //    编辑页则 Enter 等同于点击“保存”按钮。
                 if (target === 'add' && pendingAddStations.length > 0) {
                     resetStationKeyboardIndex('add');
                     setStationDropdownOpen('add', false);
                     addEntry();
+                    return;
+                }
+
+                if (target === 'edit') {
+                    resetStationKeyboardIndex('edit');
+                    setStationDropdownOpen('edit', false);
+                    saveEdit();
                 }
             }
 
