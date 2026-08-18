@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="app-build" content="2026-08-18-railway-remark-smaller-font-v1">
+    <meta name="app-build" content="2026-08-18-edit-selected-station-rows-sync-v1">
     <title>Railway</title>
     <style>
         * {
@@ -288,7 +288,8 @@
             border-bottom: 0;
         }
 
-        .station-dropdown-option {
+        .station-dropdown-option,
+        .station-selected-label {
             display: block;
             width: 100%;
             min-width: 0;
@@ -365,6 +366,31 @@
 
         .selected-stations:not(:empty) {
             margin-top: 3px;
+        }
+
+        /* 编辑页已选车站：与车站下拉菜单保持一致，一行一个选项。 */
+        .edit-selected-stations {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            gap: 0;
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #ffffff;
+        }
+
+        .edit-selected-stations:empty {
+            display: none;
+        }
+
+        .edit-selected-stations .station-dropdown-row {
+            padding: 0.2rem 0.35rem;
+        }
+
+        .station-selected-label {
+            cursor: default;
         }
 
         .station-chip {
@@ -1021,7 +1047,7 @@
                         <div class="station-dropdown hidden" id="editStationDropdown" role="listbox"></div>
                     </div>
                 </div>
-                <div class="selected-stations" id="editSelectedStations" aria-live="polite"></div>
+                <div class="selected-stations edit-selected-stations" id="editSelectedStations" aria-live="polite"></div>
                 <div class="field-hint">每次输入或选择一个车站，然后按回车确认。</div>
             </div>
 
@@ -1688,6 +1714,28 @@
             }
 
             function renderStationChips(container, stations, target) {
+                if (target === 'edit') {
+                    container.innerHTML = stations.map((station, index) => `
+                        <div class="station-dropdown-row station-selected-row" data-station="${escapeAttribute(station)}">
+                            <div class="station-selected-label">${escapeHtml(station)}</div>
+                            <button
+                                type="button"
+                                class="station-dropdown-edit station-selected-edit"
+                                data-station="${escapeAttribute(station)}"
+                                aria-label="编辑已选车站 ${escapeAttribute(station)}"
+                            >编辑</button>
+                            <button
+                                type="button"
+                                class="station-dropdown-delete station-selected-delete"
+                                data-index="${index}"
+                                data-station="${escapeAttribute(station)}"
+                                aria-label="从当前车次删除车站 ${escapeAttribute(station)}"
+                            >删除</button>
+                        </div>
+                    `).join('');
+                    return;
+                }
+
                 container.innerHTML = stations.map((station, index) => `
                     <span class="station-chip">
                         <span>${escapeHtml(station)}</span>
@@ -1931,7 +1979,10 @@
             }
 
             function renameStationOption(oldValue) {
-                const oldStation = state.stations.find(station => stationKey(station) === stationKey(oldValue));
+                const requested = cleanText(oldValue);
+                const oldStation = state.stations.find(station => stationKey(station) === stationKey(requested))
+                    || pendingEditStations.find(station => stationKey(station) === stationKey(requested))
+                    || state.entries.flatMap(entry => entry.stations).find(station => stationKey(station) === stationKey(requested));
                 if (!oldStation) return;
 
                 const nextValue = prompt('编辑车站：', oldStation);
@@ -1955,9 +2006,10 @@
                 );
 
                 // 修改后立即重新按拼音排序；改成已有名称时由 sortStationOptions 自动合并。
-                state.stations = sortStationOptions(
-                    state.stations.map(station => stationKey(station) === oldKey ? newStation : station)
-                );
+                state.stations = sortStationOptions([
+                    ...state.stations.map(station => stationKey(station) === oldKey ? newStation : station),
+                    newStation
+                ]);
 
                 // 同步更新已有车次中的同名车站，保持候选项与总表一致。
                 let updatedCount = 0;
@@ -2859,9 +2911,15 @@
             });
 
             editSelectedStations.addEventListener('click', event => {
-                const button = event.target.closest('.station-chip-remove');
-                if (!button) return;
-                const index = Number.parseInt(button.dataset.index, 10);
+                const editButton = event.target.closest('.station-selected-edit');
+                if (editButton) {
+                    renameStationOption(editButton.dataset.station);
+                    return;
+                }
+
+                const deleteButton = event.target.closest('.station-selected-delete');
+                if (!deleteButton) return;
+                const index = Number.parseInt(deleteButton.dataset.index, 10);
                 if (!Number.isInteger(index)) return;
                 pendingEditStations.splice(index, 1);
                 renderPendingStations();
