@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="app-build" content="2026-08-18-railway-remark-field-v1">
     <title>Railway</title>
     <style>
         * {
@@ -166,8 +167,8 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1rem 1.2rem;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 1rem;
         }
 
         .form-group {
@@ -484,6 +485,15 @@
             color: #0f172a;
             font-weight: 700;
             vertical-align: top !important;
+        }
+
+        .train-remark {
+            margin-top: 0.25rem;
+            color: #64748b;
+            font-weight: 400;
+            line-height: 1.5;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         .train-stations {
@@ -942,6 +952,11 @@
                     <div class="selected-stations" id="selectedStations" aria-live="polite"></div>
                 </div>
 
+                <div class="form-group">
+                    <label for="remarkInput">备注</label>
+                    <input type="text" id="remarkInput" autocomplete="off">
+                </div>
+
                 <button type="button" class="add-button" id="addBtn">添加</button>
             </div>
         </section>
@@ -972,7 +987,7 @@
     <section class="overlay hidden" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editHeading">
         <div class="dialog">
             <h3 id="editHeading">编辑条目</h3>
-            <p class="dialog-desc">可修改车次，并为该车次增加或移除多个车站。</p>
+            <p class="dialog-desc">可修改车次、车站和备注。</p>
 
             <div class="form-group">
                 <label for="editTrainInput">车次</label>
@@ -1004,6 +1019,11 @@
                 </div>
                 <div class="selected-stations" id="editSelectedStations" aria-live="polite"></div>
                 <div class="field-hint">每次输入或选择一个车站，然后按回车确认。</div>
+            </div>
+
+            <div class="form-group">
+                <label for="editRemarkInput">备注</label>
+                <input type="text" id="editRemarkInput" autocomplete="off">
             </div>
 
             <div class="dialog-actions">
@@ -1157,6 +1177,7 @@
             // ---------- DOM ----------
             const trainInput = document.getElementById('trainInput');
             const stationInput = document.getElementById('stationInput');
+            const remarkInput = document.getElementById('remarkInput');
             const stationCombobox = document.getElementById('stationCombobox');
             const stationDropdownBtn = document.getElementById('stationDropdownBtn');
             const stationDropdown = document.getElementById('stationDropdown');
@@ -1178,6 +1199,7 @@
             const editModal = document.getElementById('editModal');
             const editTrainInput = document.getElementById('editTrainInput');
             const editStationInput = document.getElementById('editStationInput');
+            const editRemarkInput = document.getElementById('editRemarkInput');
             const editStationCombobox = document.getElementById('editStationCombobox');
             const editStationDropdownBtn = document.getElementById('editStationDropdownBtn');
             const editStationDropdown = document.getElementById('editStationDropdown');
@@ -1293,9 +1315,11 @@
                 const rawStations = Array.isArray(value.stations)
                     ? value.stations
                     : [value.station];
+                const remark = cleanText(value.remark ?? value.note);
 
                 return {
                     train,
+                    remark,
                     stations: uniqueStations(rawStations)
                 };
             }
@@ -1324,9 +1348,11 @@
                     const existing = entryMap.get(key);
                     if (existing) {
                         existing.stations = uniqueStations([...existing.stations, ...entry.stations]);
+                        if (!existing.remark && entry.remark) existing.remark = entry.remark;
                     } else {
                         entryMap.set(key, {
                             train: entry.train,
+                            remark: entry.remark,
                             stations: [...entry.stations]
                         });
                     }
@@ -1392,7 +1418,7 @@
                 sortEntries(normalized.entries);
                 normalized.stations = sortStationOptions(normalized.stations);
                 return {
-                    schemaVersion: 2,
+                    schemaVersion: 3,
                     entries: normalized.entries,
                     stations: normalized.stations
                 };
@@ -1690,6 +1716,9 @@
                 }
 
                 tableBody.innerHTML = state.entries.map((item, index) => {
+                    const remarkHtml = item.remark
+                        ? `<div class="train-remark">${escapeHtml(item.remark)}</div>`
+                        : '';
                     const stationsHtml = item.stations.length
                         ? `<div class="train-stations">${item.stations.map(station =>
                             `<span class="train-station">${escapeHtml(station)}</span>`
@@ -1703,6 +1732,7 @@
                                     <div class="train-title-text">${escapeHtml(item.train)}</div>
                                     <button type="button" class="edit-btn" data-index="${index}">编辑</button>
                                 </div>
+                                ${remarkHtml}
                                 ${stationsHtml}
                             </td>
                         </tr>
@@ -1765,6 +1795,7 @@
 
             function addEntry() {
                 const train = cleanText(trainInput.value);
+                const remark = cleanText(remarkInput.value);
 
                 if (!train) {
                     alert('请填写“车次”字段。');
@@ -1776,21 +1807,26 @@
                 const existingIndex = state.entries.findIndex(entry => trainKey(entry.train) === trainKey(train));
 
                 if (existingIndex >= 0) {
-                    const beforeCount = state.entries[existingIndex].stations.length;
-                    state.entries[existingIndex].stations = uniqueStations([
-                        ...state.entries[existingIndex].stations,
+                    const existing = state.entries[existingIndex];
+                    const beforeCount = existing.stations.length;
+                    const previousRemark = existing.remark || '';
+                    existing.stations = uniqueStations([
+                        ...existing.stations,
                         ...stations
                     ]);
+                    if (remark) existing.remark = remark;
 
-                    if (stations.length === 0 || state.entries[existingIndex].stations.length === beforeCount) {
-                        showToast(`车次“${state.entries[existingIndex].train}”已存在，未新增重复内容`, 'info');
+                    const stationChanged = existing.stations.length !== beforeCount;
+                    const remarkChanged = Boolean(remark) && remark !== previousRemark;
+                    if (!stationChanged && !remarkChanged) {
+                        showToast(`车次“${existing.train}”已存在，未新增重复内容`, 'info');
                         trainInput.focus();
                         return;
                     }
 
-                    showToast(`已为车次“${state.entries[existingIndex].train}”补充车站`, 'success');
+                    showToast(`已为车次“${existing.train}”补充内容`, 'success');
                 } else {
-                    state.entries.push({ train, stations });
+                    state.entries.push({ train, remark, stations });
                 }
 
                 rememberStations(stations);
@@ -1801,6 +1837,7 @@
 
                 trainInput.value = '';
                 stationInput.value = '';
+                remarkInput.value = '';
                 renderStationDropdown('add');
                 trainInput.focus();
             }
@@ -1810,6 +1847,7 @@
                 editingIndex = index;
                 editTrainInput.value = state.entries[index].train;
                 editStationInput.value = '';
+                editRemarkInput.value = state.entries[index].remark || '';
                 pendingEditStations = [...state.entries[index].stations];
                 editStationDropdownOpen = false;
                 renderPendingStations();
@@ -1824,6 +1862,7 @@
                 pendingEditStations = [];
                 editStationDropdownOpen = false;
                 editStationInput.value = '';
+                editRemarkInput.value = '';
                 renderPendingStations();
                 renderStationDropdown('edit');
             }
@@ -1835,6 +1874,7 @@
                 }
 
                 const train = cleanText(editTrainInput.value);
+                const remark = cleanText(editRemarkInput.value);
                 const stations = consumeStationInput(editStationInput, 'edit');
 
                 if (!train) {
@@ -1848,15 +1888,17 @@
                 );
 
                 if (duplicateIndex >= 0) {
-                    const duplicateTrain = state.entries[duplicateIndex].train;
-                    state.entries[duplicateIndex].stations = uniqueStations([
-                        ...state.entries[duplicateIndex].stations,
+                    const duplicate = state.entries[duplicateIndex];
+                    const duplicateTrain = duplicate.train;
+                    duplicate.stations = uniqueStations([
+                        ...duplicate.stations,
                         ...stations
                     ]);
+                    if (remark) duplicate.remark = remark;
                     state.entries.splice(editingIndex, 1);
                     showToast(`已合并到已有车次“${duplicateTrain}”`, 'success');
                 } else {
-                    state.entries[editingIndex] = { train, stations };
+                    state.entries[editingIndex] = { train, remark, stations };
                 }
 
                 rememberStations(stations);
@@ -2732,6 +2774,13 @@
 
             stationInput.addEventListener('keydown', event => handleStationInputKeydown(event, 'add'));
 
+            remarkInput.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addEntry();
+                }
+            });
+
             selectedStations.addEventListener('click', event => {
                 const button = event.target.closest('.station-chip-remove');
                 if (!button) return;
@@ -2797,6 +2846,13 @@
             });
 
             editStationInput.addEventListener('keydown', event => handleStationInputKeydown(event, 'edit'));
+
+            editRemarkInput.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    saveEdit();
+                }
+            });
 
             editSelectedStations.addEventListener('click', event => {
                 const button = event.target.closest('.station-chip-remove');
