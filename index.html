@@ -126,14 +126,14 @@
         }
 
         .btn-sync {
-            border-color: #2563eb;
-            background: #2563eb;
+            border-color: #1E40AF;
+            background: #1E40AF;
             color: #ffffff;
         }
 
         .btn-sync:hover {
-            border-color: #1d4ed8;
-            background: #1d4ed8;
+            border-color: #1E3A8A;
+            background: #1E3A8A;
         }
 
         .btn:disabled {
@@ -329,14 +329,14 @@
         }
 
         .station-dropdown-edit {
-            color: #2563eb;
+            color: #1E40AF;
         }
 
         .station-dropdown-edit:hover,
         .station-dropdown-edit:focus-visible {
             outline: none;
             background: #dbeafe;
-            color: #1d4ed8;
+            color: #1E3A8A;
         }
 
         .station-dropdown-delete {
@@ -602,7 +602,7 @@
 
         .edit-btn:hover,
         .edit-btn:focus-visible {
-            color: #1e3a8a;
+            color: #1E3A8A;
             outline: none;
         }
 
@@ -790,7 +790,7 @@
         }
 
         .hint-link {
-            color: #2563eb;
+            color: #1E40AF;
             text-decoration: none;
         }
 
@@ -807,7 +807,7 @@
             padding: 0.78rem 1.5rem;
             transform: translateX(-50%);
             border-radius: 999px;
-            background: #2563eb;
+            background: #1E40AF;
             color: #ffffff;
             text-align: center;
             font-size: 0.88rem;
@@ -844,7 +844,7 @@
             border: 0;
             border-radius: 0;
             background: transparent;
-            color: #2563eb;
+            color: #1E40AF;
             font-family: "Arial Black", "Segoe UI Symbol", system-ui, sans-serif;
             font-size: 0;
             font-weight: 900;
@@ -862,7 +862,7 @@
             height: 8px;
             border: 0;
             border-radius: 50%;
-            background: #2563eb;
+            background: #1E40AF;
             transform: none;
         }
 
@@ -875,7 +875,7 @@
         .back-to-top:hover,
         .back-to-top:focus-visible {
             opacity: 1;
-            color: #1d4ed8;
+            color: #1E3A8A;
             background: transparent;
             transform: translateY(calc(-50% - 2px));
             outline: none;
@@ -883,7 +883,7 @@
 
         .back-to-top:hover .back-to-top-icon,
         .back-to-top:focus-visible .back-to-top-icon {
-            background: #1d4ed8;
+            background: #1E3A8A;
         }
 
         @media (max-width: 700px) {
@@ -965,6 +965,113 @@
                 height: 7px;
             }
         }
+    
+        /* ===== 总表文字统一纯黑 ===== */
+        .rail-table,
+        .rail-table th,
+        .rail-table td,
+        .rail-table th *,
+        .rail-table td *,
+        .rail-table .col-train,
+        .rail-table .train-title-text,
+        .rail-table .train-interval,
+        .rail-table .train-stations,
+        .rail-table .train-station,
+        .rail-table .train-stations-empty,
+        .rail-table .edit-btn,
+        .rail-table .edit-btn:hover,
+        .rail-table .edit-btn:focus-visible,
+        .rail-table .empty-row td {
+            color: #000 !important;
+        }
+
+    
+        /* ===== Railway 最终主题与总表规则 ===== */
+
+        /* 主色 / 悬停色 */
+        .btn-sync,
+        .add-button,
+        .btn-primary {
+            border-color: #1E40AF !important;
+            background: #1E40AF !important;
+            color: #fff !important;
+        }
+
+        .btn-sync:hover,
+        .add-button:hover,
+        .btn-primary:hover {
+            border-color: #1E3A8A !important;
+            background: #1E3A8A !important;
+            color: #fff !important;
+        }
+
+        .hint-link,
+        .station-dropdown-edit {
+            color: #1E40AF !important;
+        }
+
+        .hint-link:hover,
+        .station-dropdown-edit:hover,
+        .station-dropdown-edit:focus-visible {
+            color: #1E3A8A !important;
+        }
+
+        /* 总表：车次 1.1rem，其它 1rem；仅区间使用主色，其它纯黑 */
+        .rail-table,
+        .rail-table th,
+        .rail-table td,
+        .rail-table .col-train,
+        .rail-table .train-interval,
+        .rail-table .train-stations,
+        .rail-table .train-station,
+        .rail-table .train-stations-empty,
+        .rail-table .edit-btn,
+        .rail-table .edit-btn:hover,
+        .rail-table .edit-btn:focus-visible,
+        .rail-table .empty-row td {
+            font-size: 1rem !important;
+            color: #000 !important;
+        }
+
+        .rail-table .train-title-text {
+            font-size: 1.1rem !important;
+            color: #000 !important;
+        }
+
+        .rail-table .train-interval {
+            font-size: 1rem !important;
+            color: #1E40AF !important;
+        }
+
+        /* 回到顶部：主色实心圆，无箭头/无文字 */
+        .back-to-top {
+            width: 32px !important;
+            height: 32px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 50% !important;
+            background: #1E40AF !important;
+            color: #1E40AF !important;
+            font-size: 0 !important;
+            text-indent: -9999px !important;
+            overflow: hidden !important;
+            box-shadow: 0 3px 10px rgba(30, 64, 175, 0.28) !important;
+        }
+
+        .back-to-top-icon,
+        .back-to-top::before,
+        .back-to-top::after {
+            display: none !important;
+            content: none !important;
+        }
+
+        .back-to-top:hover,
+        .back-to-top:focus-visible {
+            background: #1E3A8A !important;
+            color: #1E3A8A !important;
+            outline: none !important;
+        }
+
     </style>
 </head>
 <body>
@@ -1177,7 +1284,7 @@
         </form>
     </section>
 
-    <button type="button" class="back-to-top" id="backToTopBtn" aria-label="回到顶部" title="回到顶部"><span class="back-to-top-icon" aria-hidden="true"></span></button>
+    <button type="button" class="back-to-top" id="backToTopBtn" aria-label="回到顶部" title="回到顶部"></button>
     <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
 
     <script>
@@ -3125,8 +3232,28 @@
 
             window.addEventListener('scroll', updateBackToTopVisibility, { passive: true });
             backToTopBtn.addEventListener('click', () => {
-                const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+                const startY = window.scrollY || window.pageYOffset || 0;
+                if (startY <= 0) return;
+
+                const duration = 50;
+                const root = document.documentElement;
+                const previousInlineScrollBehavior = root.style.scrollBehavior;
+                root.style.scrollBehavior = 'auto';
+
+                const startTime = performance.now();
+                const animate = now => {
+                    const progress = Math.min(1, (now - startTime) / duration);
+                    const eased = 1 - Math.pow(1 - progress, 2);
+                    window.scrollTo(0, Math.round(startY * (1 - eased)));
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        root.style.scrollBehavior = previousInlineScrollBehavior;
+                    }
+                };
+
+                requestAnimationFrame(animate);
             });
 
             // ---------- 初始化 ----------
