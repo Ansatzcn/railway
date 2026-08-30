@@ -2199,16 +2199,65 @@
                 return true;
             }
 
-            function renameStationOption(oldValue) {
+            function renameStationOption(oldValue, row, target) {
                 const requested = cleanText(oldValue);
                 const oldStation = state.stations.find(station => stationKey(station) === stationKey(requested))
                     || pendingEditStations.find(station => stationKey(station) === stationKey(requested))
                     || state.entries.flatMap(entry => entry.stations).find(station => stationKey(station) === stationKey(requested));
-                if (!oldStation) return;
+                if (!oldStation || !row) return;
 
-                const nextValue = prompt('编辑车站：', oldStation);
-                if (nextValue === null) return;
-                applyStationRename(oldStation, nextValue);
+                const option = row.querySelector('.station-dropdown-option');
+                if (!option) return;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'station-selected-inline-input';
+                input.value = oldStation;
+                input.setAttribute('aria-label', `编辑车站 ${oldStation}`);
+                option.replaceWith(input);
+
+                const finish = save => {
+                    if (!input.isConnected) return;
+                    if (!save) {
+                        renderStationDropdown(target);
+                        return;
+                    }
+
+                    const nextValue = cleanText(input.value);
+                    if (!nextValue) {
+                        showToast('车站名称不能为空', 'error');
+                        input.focus();
+                        input.setSelectionRange(0, 0);
+                        return;
+                    }
+
+                    if (nextValue === oldStation) {
+                        renderStationDropdown(target);
+                        return;
+                    }
+
+                    applyStationRename(oldStation, nextValue);
+                };
+
+                input.addEventListener('keydown', event => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        finish(true);
+                    } else if (event.key === 'Escape') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        finish(false);
+                    }
+                });
+
+                input.addEventListener('mousedown', event => event.stopPropagation());
+                input.addEventListener('click', event => event.stopPropagation());
+
+                requestAnimationFrame(() => {
+                    input.focus();
+                    input.setSelectionRange(0, 0);
+                });
             }
 
             function beginSelectedStationInlineEdit(oldValue, row) {
@@ -3040,7 +3089,7 @@
 
                 const editButton = event.target.closest('.station-dropdown-edit');
                 if (editButton) {
-                    renameStationOption(editButton.dataset.station);
+                    renameStationOption(editButton.dataset.station, editButton.closest('.station-dropdown-row'), 'add');
                     return;
                 }
 
@@ -3113,7 +3162,7 @@
 
                 const editButton = event.target.closest('.station-dropdown-edit');
                 if (editButton) {
-                    renameStationOption(editButton.dataset.station);
+                    renameStationOption(editButton.dataset.station, editButton.closest('.station-dropdown-row'), 'edit');
                     return;
                 }
 
