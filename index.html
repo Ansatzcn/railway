@@ -1854,13 +1854,13 @@
                                 class="station-dropdown-edit"
                                 data-station="${escapeAttribute(station)}"
                                 aria-label="编辑车站 ${escapeAttribute(station)}"
-                            >编辑</button>
+                            >改</button>
                             <button
                                 type="button"
                                 class="station-dropdown-delete"
                                 data-station="${escapeAttribute(station)}"
                                 aria-label="删除车站 ${escapeAttribute(station)}"
-                            >删除</button>
+                            >删</button>
                         </div>
                     `).join('')
                     : '<div class="station-dropdown-empty">暂无可选车站</div>';
@@ -3235,7 +3235,7 @@
                 const startY = window.scrollY || window.pageYOffset || 0;
                 if (startY <= 0) return;
 
-                const duration = 50;
+                const duration = 10;
                 const root = document.documentElement;
                 const previousInlineScrollBehavior = root.style.scrollBehavior;
                 root.style.scrollBehavior = 'auto';
