@@ -17,7 +17,7 @@
             padding: 2rem 1rem;
             background: #f5f7fa;
             color: #0f172a;
-            font-family: "Times New Roman", "SimSun", "宋体", serif;
+            font-family: "Times New Roman", "Microsoft YaHei", "微软雅黑", sans-serif;
         }
 
         button,
@@ -829,11 +829,6 @@
 
         .back-to-top {
             position: fixed;
-            /*
-             * 按钮放在主容器右侧的页面留白中：
-             * 宽屏时紧贴 1100px 主容器外侧；窄屏时退到视口最右侧，
-             * 不覆盖总表内容。
-             */
             right: max(2px, calc((100vw - min(calc(100vw - 2rem), 1100px)) / 2 - 14px));
             top: 70%;
             z-index: 900;
@@ -845,7 +840,7 @@
             border-radius: 0;
             background: transparent;
             color: #1E40AF;
-            font-family: "Arial Black", "Segoe UI Symbol", system-ui, sans-serif;
+            font-family: "Times New Roman", "Microsoft YaHei", "微软雅黑", sans-serif;
             font-size: 0;
             font-weight: 900;
             line-height: 1;
@@ -965,7 +960,7 @@
                 height: 7px;
             }
         }
-    
+
         /* ===== 总表文字统一纯黑 ===== */
         .rail-table,
         .rail-table th,
@@ -985,7 +980,6 @@
             color: #000 !important;
         }
 
-    
         /* ===== Railway 最终主题与总表规则 ===== */
 
         /* 主色 / 悬停色 */
@@ -1043,19 +1037,54 @@
             color: #1E40AF !important;
         }
 
-        /* 回到顶部：主色实心圆，无箭头/无文字 */
+        /* ===== 回到顶部：完全采用 Press 最终版尺寸和位置 ===== */
         .back-to-top {
-            width: 32px !important;
-            height: 32px !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            position: fixed !important;
+            right: 16px !important;
+            top: 70% !important;
+            z-index: 2147483647 !important;
+            display: block;
+            width: 25px !important;
+            height: 25px !important;
+            margin: 0 !important;
             padding: 0 !important;
+            transform: none !important;
             border: 0 !important;
             border-radius: 50% !important;
             background: #1E40AF !important;
-            color: #1E40AF !important;
+            color: transparent !important;
+            cursor: pointer !important;
+            touch-action: manipulation;
             font-size: 0 !important;
-            text-indent: -9999px !important;
+            line-height: 0 !important;
             overflow: hidden !important;
-            box-shadow: 0 3px 10px rgba(30, 64, 175, 0.28) !important;
+            box-shadow: none !important;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover {
+            background: #1E40AF !important;
+            color: transparent !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .back-to-top:focus-visible {
+            background: #1E40AF !important;
+            color: transparent !important;
+            transform: none !important;
+            box-shadow: none !important;
+            outline: 2px solid #93c5fd !important;
+            outline-offset: 3px !important;
         }
 
         .back-to-top-icon,
@@ -1064,14 +1093,6 @@
             display: none !important;
             content: none !important;
         }
-
-        .back-to-top:hover,
-        .back-to-top:focus-visible {
-            background: #1E3A8A !important;
-            color: #1E3A8A !important;
-            outline: none !important;
-        }
-
     </style>
 </head>
 <body>
@@ -1100,13 +1121,7 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label for="trainInput">车次</label>
-                    <input
-                        type="text"
-                        id="trainInput"
-                        autocomplete="off"
-                        required
-                        autofocus
-                    >
+                    <input type="text" id="trainInput" autocomplete="off" required autofocus>
                 </div>
 
                 <div class="form-group">
@@ -1118,21 +1133,11 @@
                     <label for="stationInput">车站</label>
                     <div class="station-picker">
                         <div class="station-combobox" id="stationCombobox">
-                            <input
-                                type="text"
-                                id="stationInput"
-                                autocomplete="off"
-                                aria-haspopup="listbox"
-                                aria-expanded="false"
-                                aria-controls="stationDropdown"
-                            >
-                            <button
-                                type="button"
-                                class="station-dropdown-toggle"
-                                id="stationDropdownBtn"
-                                aria-label="展开车站选项"
-                                aria-expanded="false"
-                            >▾</button>
+                            <input type="text" id="stationInput" autocomplete="off"
+                                aria-haspopup="listbox" aria-expanded="false"
+                                aria-controls="stationDropdown">
+                            <button type="button" class="station-dropdown-toggle" id="stationDropdownBtn"
+                                aria-label="展开车站选项" aria-expanded="false">▾</button>
                             <div class="station-dropdown hidden" id="stationDropdown" role="listbox"></div>
                         </div>
                     </div>
@@ -1152,14 +1157,10 @@
             <div class="table-wrapper">
                 <table class="rail-table">
                     <thead>
-                        <tr>
-                            <th>车次</th>
-                        </tr>
+                        <tr><th>车次</th></tr>
                     </thead>
                     <tbody id="tableBody">
-                        <tr class="empty-row">
-                            <td colspan="1">加载中</td>
-                        </tr>
+                        <tr class="empty-row"><td colspan="1">加载中</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1185,22 +1186,12 @@
                 <label for="editStationInput">车站</label>
                 <div class="station-picker">
                     <div class="station-combobox" id="editStationCombobox">
-                        <input
-                            type="text"
-                            id="editStationInput"
-                            autocomplete="off"
+                        <input type="text" id="editStationInput" autocomplete="off"
                             placeholder="输入或选择一个车站"
-                            aria-haspopup="listbox"
-                            aria-expanded="false"
-                            aria-controls="editStationDropdown"
-                        >
-                        <button
-                            type="button"
-                            class="station-dropdown-toggle"
-                            id="editStationDropdownBtn"
-                            aria-label="展开车站选项"
-                            aria-expanded="false"
-                        >▾</button>
+                            aria-haspopup="listbox" aria-expanded="false"
+                            aria-controls="editStationDropdown">
+                        <button type="button" class="station-dropdown-toggle" id="editStationDropdownBtn"
+                            aria-label="展开车站选项" aria-expanded="false">▾</button>
                         <div class="station-dropdown hidden" id="editStationDropdown" role="listbox"></div>
                     </div>
                 </div>
@@ -1257,14 +1248,8 @@
 
             <div class="form-group">
                 <label for="cfgToken">GitHub Personal Access Token <span class="required-mark">*</span></label>
-                <input
-                    type="password"
-                    id="cfgToken"
-                    name="github-token-new"
-                    autocomplete="new-password"
-                    spellcheck="false"
-                    required
-                >
+                <input type="password" id="cfgToken" name="github-token-new"
+                    autocomplete="new-password" spellcheck="false" required>
                 <label class="checkbox-row">
                     <input type="checkbox" id="saveTokenCheck" checked>
                     <span>在本设备保存 Token。</span>
@@ -1273,7 +1258,8 @@
                     若浏览器出现“保存密码”提示，请选择保存；开启浏览器密码同步后，其他设备可自动填充。
                 </div>
                 <div class="field-hint">
-                    <a class="hint-link" href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener noreferrer">创建细粒度 Token</a>，仅授权目标仓库并授予 Contents: Read and write。
+                    <a class="hint-link" href="https://github.com/settings/personal-access-tokens"
+                       target="_blank" rel="noopener noreferrer">创建细粒度 Token</a>，仅授权目标仓库并授予 Contents: Read and write。
                 </div>
             </div>
 
@@ -1291,7 +1277,6 @@
         (() => {
             'use strict';
 
-            // ---------- 页面实例与存储键 ----------
             function getPageIdentity() {
                 let pathname = window.location.pathname || '/';
                 pathname = pathname
@@ -1318,18 +1303,14 @@
             const NAMESPACE = `rail:${hashText(getPageIdentity())}`;
             const STATE_KEY = `${NAMESPACE}:state_v1`;
             const CONFIG_KEY = `${NAMESPACE}:config_v1`;
-            const TOKEN_LOCAL_KEY = `${NAMESPACE}:token_local`; // 旧版单 Token 键，仅用于迁移
+            const TOKEN_LOCAL_KEY = `${NAMESPACE}:token_local`;
             const TOKEN_PROFILES_KEY = `${NAMESPACE}:token_profiles_v1`;
             const TOKEN_SESSION_KEY = `${NAMESPACE}:token_session`;
             const SYNC_META_KEY = `${NAMESPACE}:sync_meta_v1`;
             const MAX_SYNC_BYTES = 750 * 1024;
             const AUTO_SYNC_DELAY = 700;
 
-            let state = {
-                entries: [],
-                stations: []
-            };
-
+            let state = { entries: [], stations: [] };
             let tokenProfiles = [];
             let selectedTokenProfileId = '';
 
@@ -1356,7 +1337,6 @@
             let toastTimer = null;
             let hadStoredLocalState = false;
 
-            // ---------- DOM ----------
             const trainInput = document.getElementById('trainInput');
             const stationInput = document.getElementById('stationInput');
             const intervalInput = document.getElementById('intervalInput');
@@ -1390,7 +1370,6 @@
             const editCancelBtn = document.getElementById('editCancelBtn');
             const editSaveBtn = document.getElementById('editSaveBtn');
 
-
             const configModal = document.getElementById('configModal');
             const configForm = document.getElementById('configForm');
             const cfgSavedToken = document.getElementById('cfgSavedToken');
@@ -1405,7 +1384,6 @@
             const configCancelBtn = document.getElementById('configCancelBtn');
             const configSaveBtn = document.getElementById('configSaveBtn');
 
-            // ---------- 安全存储 ----------
             function safeGet(storage, key) {
                 try {
                     return storage.getItem(key);
@@ -1434,15 +1412,11 @@
                 }
             }
 
-            // ---------- 数据规范化 ----------
             const stationCollator = new Intl.Collator('zh-CN-u-co-pinyin', {
                 sensitivity: 'base',
                 numeric: true
             });
 
-            // 车次排序分三组：
-            // 1. 数字开头；2. A-Z 字母开头；3. 汉字开头（按拼音）。
-            // numeric:true 保证 2 < 10、G2 < G10。
             const numericTrainCollator = new Intl.Collator('zh-CN', {
                 sensitivity: 'base',
                 numeric: true,
@@ -1465,21 +1439,17 @@
                 return String(value ?? '').normalize('NFKC').trim();
             }
 
-            // 去重时保留首次输入顺序；车次条目中的车站顺序不得被自动重排。
             function uniqueStations(values) {
                 const map = new Map();
-
                 for (const value of values) {
                     const station = cleanText(value);
                     if (!station) continue;
                     const key = station.toLocaleLowerCase('zh-CN');
                     if (!map.has(key)) map.set(key, station);
                 }
-
                 return Array.from(map.values());
             }
 
-            // 仅历史车站下拉菜单和管理列表按拼音排序。
             function sortStationOptions(values) {
                 return uniqueStations(values).sort((a, b) => stationCollator.compare(a, b));
             }
@@ -1490,20 +1460,11 @@
 
             function normalizeEntry(value) {
                 if (!value || typeof value !== 'object') return null;
-
                 const train = cleanText(value.train ?? value.trainNumber ?? value.number);
                 if (!train) return null;
-
-                const rawStations = Array.isArray(value.stations)
-                    ? value.stations
-                    : [value.station];
+                const rawStations = Array.isArray(value.stations) ? value.stations : [value.station];
                 const interval = cleanText(value.interval ?? value.remark ?? value.note);
-
-                return {
-                    train,
-                    interval,
-                    stations: uniqueStations(rawStations)
-                };
+                return { train, interval, stations: uniqueStations(rawStations) };
             }
 
             function normalizePayload(value) {
@@ -1511,7 +1472,6 @@
                 let sourceStations = [];
                 let hasExplicitStationList = false;
 
-                // 兼容旧版数组根节点、旧版单车站 entry.station，以及新版 entry.stations。
                 if (Array.isArray(value)) {
                     sourceEntries = value;
                 } else if (value && typeof value === 'object') {
@@ -1520,7 +1480,6 @@
                     sourceStations = hasExplicitStationList ? value.stations : [];
                 }
 
-                // 同名车次自动合并为一个条目，所有车站合并到 stations 数组。
                 const entryMap = new Map();
                 for (const rawEntry of sourceEntries) {
                     const entry = normalizeEntry(rawEntry);
@@ -1553,7 +1512,6 @@
             function getTrainSortGroup(value) {
                 const text = cleanText(value);
                 const first = Array.from(text)[0] || '';
-
                 if (/^[0-9]$/.test(first)) return 0;
                 if (/^[A-Za-z]$/.test(first)) return 1;
                 if (/^\p{Script=Han}$/u.test(first)) return 2;
@@ -1565,34 +1523,24 @@
                 const textB = cleanText(b);
                 const groupA = getTrainSortGroup(textA);
                 const groupB = getTrainSortGroup(textB);
-
                 if (groupA !== groupB) return groupA - groupB;
 
                 let result = 0;
-
                 if (groupA === 0) {
                     result = numericTrainCollator.compare(textA, textB);
                 } else if (groupA === 1) {
                     result = latinTrainCollator.compare(textA, textB);
                 } else {
-                    // 汉字开头以及其他少见字符，统一使用中文拼音规则作为组内排序。
                     result = pinyinTrainCollator.compare(textA, textB);
                 }
 
-                // Collator 判断相等时用原字符回退，保证排序结果稳定确定。
-                if (result === 0 && textA !== textB) {
-                    return textA < textB ? -1 : 1;
-                }
+                if (result === 0 && textA !== textB) return textA < textB ? -1 : 1;
                 return result;
             }
 
             function sortEntries(entries = state.entries) {
                 entries.sort((a, b) => compareTrainNumbers(a.train, b.train));
-
-                // 车站只去重，不排序，严格保留用户输入或选择的先后顺序。
-                for (const entry of entries) {
-                    entry.stations = uniqueStations(entry.stations);
-                }
+                for (const entry of entries) entry.stations = uniqueStations(entry.stations);
             }
 
             function makeSerializableState(source = state) {
@@ -1637,7 +1585,6 @@
                 );
             }
 
-            // ---------- HTML 转义 ----------
             function escapeHtml(value) {
                 const element = document.createElement('div');
                 element.textContent = String(value ?? '');
@@ -1653,7 +1600,6 @@
                     .replace(/>/g, '&gt;');
             }
 
-            // ---------- 本地状态 ----------
             function saveStateToLocal() {
                 state = normalizePayload(state);
                 sortEntries(state.entries);
@@ -1679,7 +1625,6 @@
                 renderAll();
             }
 
-            // ---------- 渲染 ----------
             function getPendingStations(target) {
                 return target === 'edit' ? pendingEditStations : pendingAddStations;
             }
@@ -1706,11 +1651,9 @@
                 const options = Array.from(dropdown.querySelectorAll('.station-dropdown-option'));
                 let index = stationKeyboardIndex[target];
 
-                if (options.length === 0) {
-                    index = -1;
-                } else if (index >= options.length) {
-                    index = options.length - 1;
-                }
+                if (options.length === 0) index = -1;
+                else if (index >= options.length) index = options.length - 1;
+
                 stationKeyboardIndex[target] = index;
 
                 options.forEach((option, optionIndex) => {
@@ -1782,10 +1725,8 @@
                 if (event.key !== 'Enter') return;
                 event.preventDefault();
 
-                // 1. 下拉中有键盘高亮项时，Enter 优先选择该项。
                 if (isStationDropdownOpen(target) && chooseStationKeyboardSelection(target)) return;
 
-                // 2. 输入框里有文字时，Enter 优先把文字作为车站加入，并收起下拉。
                 if (cleanText(input.value)) {
                     if (addStationsToSelection(input, target)) {
                         resetStationKeyboardIndex(target);
@@ -1794,9 +1735,6 @@
                     return;
                 }
 
-                // 3. 输入框为空时：
-                //    添加区已经选好至少一个车站，Enter 等同于点击主“添加”按钮；
-                //    编辑页则 Enter 等同于点击“保存”按钮。
                 if (target === 'add' && pendingAddStations.length > 0) {
                     resetStationKeyboardIndex('add');
                     setStationDropdownOpen('add', false);
@@ -1812,11 +1750,8 @@
             }
 
             function setStationDropdownOpen(target, open) {
-                if (target === 'edit') {
-                    editStationDropdownOpen = open;
-                } else {
-                    stationDropdownOpen = open;
-                }
+                if (target === 'edit') editStationDropdownOpen = open;
+                else stationDropdownOpen = open;
                 if (!open) resetStationKeyboardIndex(target);
                 renderStationDropdown(target);
             }
@@ -1843,24 +1778,14 @@
                 dropdown.innerHTML = options.length
                     ? options.map(station => `
                         <div class="station-dropdown-row" data-station="${escapeAttribute(station)}">
-                            <button
-                                type="button"
-                                class="station-dropdown-option"
-                                role="option"
+                            <button type="button" class="station-dropdown-option" role="option"
+                                data-station="${escapeAttribute(station)}">${escapeHtml(station)}</button>
+                            <button type="button" class="station-dropdown-edit"
                                 data-station="${escapeAttribute(station)}"
-                            >${escapeHtml(station)}</button>
-                            <button
-                                type="button"
-                                class="station-dropdown-edit"
+                                aria-label="编辑车站 ${escapeAttribute(station)}">改</button>
+                            <button type="button" class="station-dropdown-delete"
                                 data-station="${escapeAttribute(station)}"
-                                aria-label="编辑车站 ${escapeAttribute(station)}"
-                            >改</button>
-                            <button
-                                type="button"
-                                class="station-dropdown-delete"
-                                data-station="${escapeAttribute(station)}"
-                                aria-label="删除车站 ${escapeAttribute(station)}"
-                            >删</button>
+                                aria-label="删除车站 ${escapeAttribute(station)}">删</button>
                         </div>
                     `).join('')
                     : '<div class="station-dropdown-empty">暂无可选车站</div>';
@@ -1878,20 +1803,14 @@
                 if (target === 'edit') {
                     container.innerHTML = stations.map((station, index) => `
                         <div class="station-dropdown-row station-selected-row" data-station="${escapeAttribute(station)}">
-                            <div class="station-selected-label" data-station="${escapeAttribute(station)}" title="单击编辑车站">${escapeHtml(station)}</div>
-                            <button
-                                type="button"
-                                class="station-dropdown-edit station-selected-edit"
+                            <div class="station-selected-label" data-station="${escapeAttribute(station)}"
+                                title="单击编辑车站">${escapeHtml(station)}</div>
+                            <button type="button" class="station-dropdown-edit station-selected-edit"
                                 data-station="${escapeAttribute(station)}"
-                                aria-label="编辑已选车站 ${escapeAttribute(station)}"
-                            >编辑</button>
-                            <button
-                                type="button"
-                                class="station-dropdown-delete station-selected-delete"
-                                data-index="${index}"
-                                data-station="${escapeAttribute(station)}"
-                                aria-label="从当前车次删除车站 ${escapeAttribute(station)}"
-                            >删除</button>
+                                aria-label="编辑已选车站 ${escapeAttribute(station)}">编辑</button>
+                            <button type="button" class="station-dropdown-delete station-selected-delete"
+                                data-index="${index}" data-station="${escapeAttribute(station)}"
+                                aria-label="从当前车次删除车站 ${escapeAttribute(station)}">删除</button>
                         </div>
                     `).join('');
                     return;
@@ -1900,14 +1819,9 @@
                 container.innerHTML = stations.map((station, index) => `
                     <span class="station-chip">
                         <span>${escapeHtml(station)}</span>
-                        <button
-                            type="button"
-                            class="station-chip-remove"
-                            data-target="${target}"
-                            data-index="${index}"
-                            aria-label="移除车站 ${escapeAttribute(station)}"
-                            title="移除"
-                        >×</button>
+                        <button type="button" class="station-chip-remove"
+                            data-target="${target}" data-index="${index}"
+                            aria-label="移除车站 ${escapeAttribute(station)}" title="移除">×</button>
                     </span>
                 `).join('');
             }
@@ -1961,7 +1875,6 @@
                 saveStateToLocal();
             }
 
-            // ---------- 添加、编辑、删除 ----------
             function addStationValues(values, target) {
                 const parsed = uniqueStations(Array.isArray(values) ? values : [values]);
                 if (parsed.length === 0) return false;
@@ -2000,9 +1913,7 @@
             }
 
             function consumeStationInput(inputElement, target) {
-                if (cleanText(inputElement.value)) {
-                    addStationsToSelection(inputElement, target);
-                }
+                if (cleanText(inputElement.value)) addStationsToSelection(inputElement, target);
                 return target === 'edit' ? [...pendingEditStations] : [...pendingAddStations];
             }
 
@@ -2023,10 +1934,7 @@
                     const existing = state.entries[existingIndex];
                     const beforeCount = existing.stations.length;
                     const previousInterval = existing.interval || '';
-                    existing.stations = uniqueStations([
-                        ...existing.stations,
-                        ...stations
-                    ]);
+                    existing.stations = uniqueStations([...existing.stations, ...stations]);
                     if (interval) existing.interval = interval;
 
                     const stationChanged = existing.stations.length !== beforeCount;
@@ -2103,10 +2011,7 @@
                 if (duplicateIndex >= 0) {
                     const duplicate = state.entries[duplicateIndex];
                     const duplicateTrain = duplicate.train;
-                    duplicate.stations = uniqueStations([
-                        ...duplicate.stations,
-                        ...stations
-                    ]);
+                    duplicate.stations = uniqueStations([...duplicate.stations, ...stations]);
                     if (interval) duplicate.interval = interval;
                     state.entries.splice(editingIndex, 1);
                     showToast(`已合并到已有车次“${duplicateTrain}”`, 'success');
@@ -2128,13 +2033,11 @@
                 if (!confirm(`确定要删除车次“${item.train}”${stationCountText}吗？`)) return false;
 
                 state.entries.splice(index, 1);
-                // 历史车站候选项独立保留，即使对应车次被删除也仍可继续选择。
                 renderAll();
                 markLocalChange();
                 return true;
             }
 
-            // ---------- 历史车站下拉项编辑 / 删除 ----------
             function stationKey(value) {
                 return cleanText(value).toLocaleLowerCase('zh-CN');
             }
@@ -2143,7 +2046,8 @@
                 const requested = cleanText(oldValue);
                 const oldStation = state.stations.find(station => stationKey(station) === stationKey(requested))
                     || pendingEditStations.find(station => stationKey(station) === stationKey(requested))
-                    || state.entries.flatMap(entry => entry.stations).find(station => stationKey(station) === stationKey(requested));
+                    || state.entries.flatMap(entry => entry.stations)
+                        .find(station => stationKey(station) === stationKey(requested));
                 if (!oldStation) return false;
 
                 const newStation = cleanText(nextValue);
@@ -2152,9 +2056,7 @@
                     return false;
                 }
 
-                if (newStation === oldStation) {
-                    return true;
-                }
+                if (newStation === oldStation) return true;
 
                 const oldKey = stationKey(oldStation);
                 const newKey = stationKey(newStation);
@@ -2162,13 +2064,11 @@
                     stationKey(station) === newKey && stationKey(station) !== oldKey
                 );
 
-                // 修改后立即重新按拼音排序；改成已有名称时由 sortStationOptions 自动合并。
                 state.stations = sortStationOptions([
                     ...state.stations.map(station => stationKey(station) === oldKey ? newStation : station),
                     newStation
                 ]);
 
-                // 同步更新已有车次中的同名车站，保持候选项与总表一致。
                 let updatedCount = 0;
                 state.entries = state.entries.map(entry => {
                     let changed = false;
@@ -2190,12 +2090,10 @@
 
                 renderAll();
                 markLocalChange();
-
-                if (duplicate) {
-                    showToast(`已合并为“${newStation}”${updatedCount ? `，并更新 ${updatedCount} 处使用` : ''}`, 'success');
-                } else {
-                    showToast(`已修改为“${newStation}”${updatedCount ? `，并更新 ${updatedCount} 处使用` : ''}`, 'success');
-                }
+                showToast(
+                    `已${duplicate ? '合并' : '修改'}为“${newStation}”${updatedCount ? `，并更新 ${updatedCount} 处使用` : ''}`,
+                    'success'
+                );
                 return true;
             }
 
@@ -2203,7 +2101,8 @@
                 const requested = cleanText(oldValue);
                 const oldStation = state.stations.find(station => stationKey(station) === stationKey(requested))
                     || pendingEditStations.find(station => stationKey(station) === stationKey(requested))
-                    || state.entries.flatMap(entry => entry.stations).find(station => stationKey(station) === stationKey(requested));
+                    || state.entries.flatMap(entry => entry.stations)
+                        .find(station => stationKey(station) === stationKey(requested));
                 if (!oldStation || !row) return;
 
                 const option = row.querySelector('.station-dropdown-option');
@@ -2264,10 +2163,6 @@
                 const station = cleanText(oldValue);
                 if (!station || !row) return;
 
-                const label = row.querySelector('.station-selected-label');
-                if (!label) return;
-
-                // 同一时间只允许编辑一个已选车站。
                 renderPendingStations();
                 const refreshedRow = [...editSelectedStations.querySelectorAll('.station-selected-row')]
                     .find(item => stationKey(item.dataset.station) === stationKey(station));
@@ -2317,7 +2212,6 @@
 
                 input.addEventListener('click', event => event.stopPropagation());
 
-                // 关键修改：进入编辑后，光标固定放到首字之前，而不是末尾。
                 requestAnimationFrame(() => {
                     input.focus();
                     input.setSelectionRange(0, 0);
@@ -2329,7 +2223,9 @@
                 if (!station) return;
 
                 const usedCount = state.entries.reduce(
-                    (count, entry) => count + entry.stations.filter(item => stationKey(item) === stationKey(station)).length,
+                    (count, entry) => count + entry.stations.filter(
+                        item => stationKey(item) === stationKey(station)
+                    ).length,
                     0
                 );
                 const usageNote = usedCount
@@ -2346,7 +2242,6 @@
                 showToast(`已从候选项删除“${station}”`, 'success');
             }
 
-            // ---------- 导入导出 ----------
             function downloadJson(data, filename) {
                 const blob = new Blob([JSON.stringify(data, null, 2)], {
                     type: 'application/json;charset=utf-8'
@@ -2389,9 +2284,7 @@
                         if (
                             (state.entries.length > 0 || state.stations.length > 0) &&
                             !confirm('导入会完全替换当前条目和车站候选项，确定继续吗？')
-                        ) {
-                            return;
-                        }
+                        ) return;
 
                         state = imported;
                         renderAll();
@@ -2405,7 +2298,6 @@
                 reader.readAsText(file, 'utf-8');
             }
 
-            // ---------- 配置与 Token ----------
             function createTokenProfileId() {
                 if (window.crypto && typeof window.crypto.randomUUID === 'function') {
                     return window.crypto.randomUUID();
@@ -2424,7 +2316,9 @@
                     owner: cleanText(item.owner),
                     repo: cleanText(item.repo),
                     file: cleanText(item.file) || 'rail_data.json',
-                    updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date().toISOString()
+                    updatedAt: typeof item.updatedAt === 'string'
+                        ? item.updatedAt
+                        : new Date().toISOString()
                 };
             }
 
@@ -2519,7 +2413,9 @@
                 const profile = tokenProfiles.find(item => item.id === selectedTokenProfileId);
                 if (!profile) return;
 
-                const label = profile.name || [profile.owner, profile.repo].filter(Boolean).join('/') || '该 Token';
+                const label = profile.name
+                    || [profile.owner, profile.repo].filter(Boolean).join('/')
+                    || '该 Token';
                 if (!confirm(`确定从本设备删除“${label}”吗？`)) return;
 
                 tokenProfiles = tokenProfiles.filter(item => item.id !== profile.id);
@@ -2545,9 +2441,7 @@
                 const name = cleanText(cfgTokenName.value);
                 let profile = tokenProfiles.find(item => item.id === selectedTokenProfileId);
 
-                if (!profile) {
-                    profile = tokenProfiles.find(item => item.token === token);
-                }
+                if (!profile) profile = tokenProfiles.find(item => item.token === token);
 
                 if (profile) {
                     profile.name = name;
@@ -2589,7 +2483,6 @@
 
                 tokenProfiles = loadTokenProfiles();
 
-                // 自动迁移旧版单 Token，避免升级后丢失。
                 const legacyToken = safeGet(localStorage, TOKEN_LOCAL_KEY) || '';
                 if (legacyToken && !tokenProfiles.some(item => item.token === legacyToken)) {
                     tokenProfiles.push({
@@ -2605,7 +2498,9 @@
                     safeRemove(localStorage, TOKEN_LOCAL_KEY);
                 }
 
-                const requestedId = typeof parsed.activeTokenId === 'string' ? parsed.activeTokenId : '';
+                const requestedId = typeof parsed.activeTokenId === 'string'
+                    ? parsed.activeTokenId
+                    : '';
                 const activeProfile = tokenProfiles.find(item => item.id === requestedId)
                     || tokenProfiles[0]
                     || null;
@@ -2718,7 +2613,6 @@
                 syncToCloud(true, true);
             }
 
-            // ---------- GitHub 同步 ----------
             function createEmptySyncMeta(target = '') {
                 return {
                     target,
@@ -2740,7 +2634,9 @@
                     syncMeta = {
                         target: typeof parsed.target === 'string' ? parsed.target : '',
                         remoteSha: typeof parsed.remoteSha === 'string' ? parsed.remoteSha : null,
-                        lastFingerprint: typeof parsed.lastFingerprint === 'string' ? parsed.lastFingerprint : null,
+                        lastFingerprint: typeof parsed.lastFingerprint === 'string'
+                            ? parsed.lastFingerprint
+                            : null,
                         lastSyncAt: typeof parsed.lastSyncAt === 'string' ? parsed.lastSyncAt : null
                     };
                 } catch (error) {
@@ -3061,7 +2957,6 @@
                 scheduleAutoSync();
             }
 
-            // ---------- 通知 ----------
             function showToast(message, type = 'info') {
                 toast.textContent = message;
                 toast.className = `toast ${type}`;
@@ -3070,8 +2965,8 @@
                 toastTimer = setTimeout(() => toast.classList.add('hidden'), 3400);
             }
 
-            // ---------- 事件 ----------
             addBtn.addEventListener('click', addEntry);
+
             stationDropdownBtn.addEventListener('click', event => {
                 event.stopPropagation();
                 setStationDropdownOpen('add', !stationDropdownOpen);
@@ -3089,7 +2984,11 @@
 
                 const editButton = event.target.closest('.station-dropdown-edit');
                 if (editButton) {
-                    renameStationOption(editButton.dataset.station, editButton.closest('.station-dropdown-row'), 'add');
+                    renameStationOption(
+                        editButton.dataset.station,
+                        editButton.closest('.station-dropdown-row'),
+                        'add'
+                    );
                     return;
                 }
 
@@ -3111,7 +3010,9 @@
                 }
             });
 
-            stationInput.addEventListener('keydown', event => handleStationInputKeydown(event, 'add'));
+            stationInput.addEventListener('keydown', event =>
+                handleStationInputKeydown(event, 'add')
+            );
 
             intervalInput.addEventListener('keydown', event => {
                 if (event.key === 'Enter') {
@@ -3145,6 +3046,7 @@
             });
             editCancelBtn.addEventListener('click', closeEditModal);
             editSaveBtn.addEventListener('click', saveEdit);
+
             editStationDropdownBtn.addEventListener('click', event => {
                 event.stopPropagation();
                 setStationDropdownOpen('edit', !editStationDropdownOpen);
@@ -3162,7 +3064,11 @@
 
                 const editButton = event.target.closest('.station-dropdown-edit');
                 if (editButton) {
-                    renameStationOption(editButton.dataset.station, editButton.closest('.station-dropdown-row'), 'edit');
+                    renameStationOption(
+                        editButton.dataset.station,
+                        editButton.closest('.station-dropdown-row'),
+                        'edit'
+                    );
                     return;
                 }
 
@@ -3184,7 +3090,9 @@
                 }
             });
 
-            editStationInput.addEventListener('keydown', event => handleStationInputKeydown(event, 'edit'));
+            editStationInput.addEventListener('keydown', event =>
+                handleStationInputKeydown(event, 'edit')
+            );
 
             editIntervalInput.addEventListener('keydown', event => {
                 if (event.key === 'Enter') {
@@ -3230,11 +3138,8 @@
             });
 
             cfgSavedToken.addEventListener('change', () => {
-                if (cfgSavedToken.value) {
-                    applyTokenProfile(cfgSavedToken.value);
-                } else {
-                    beginNewToken();
-                }
+                if (cfgSavedToken.value) applyTokenProfile(cfgSavedToken.value);
+                else beginNewToken();
             });
             cfgNewTokenBtn.addEventListener('click', beginNewToken);
             cfgDeleteTokenBtn.addEventListener('click', deleteSelectedTokenProfile);
@@ -3305,7 +3210,6 @@
                 requestAnimationFrame(animate);
             });
 
-            // ---------- 初始化 ----------
             loadConfig();
             loadSyncMeta();
             loadStateFromLocal();
